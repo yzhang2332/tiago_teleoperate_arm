@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<robot name="smooth_cube">
+  <link name="smooth_cube_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://arm_teleop_keyboard/meshes/smooth.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://arm_teleop_keyboard/meshes/smooth.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+</robot>
