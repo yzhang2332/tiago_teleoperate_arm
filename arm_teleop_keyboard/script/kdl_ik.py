@@ -52,7 +52,15 @@ arm_pub = rospy.Publisher('/arm_controller/command', JointTrajectory, queue_size
 
 # List of joint names for TIAGO's arm - Update this list to match your configuration
 joint_names = ["torso_lift_joint", "arm_1_joint", "arm_2_joint", "arm_3_joint", 
-               "arm_4_joint", "arm_5_joint", "arm_6_joint", "arm_7_joint"]
+               "arm_4_joint", "arm_5_joint", "arm_6_joint", "arm_7_joint", 
+               "gripper_left_finger_joint", "gripper_right_finger_joint",
+               "head_1_joint", "head_2_joint", 
+               "wheel_left_joint", "wheel_right_joint",
+               "caster_back_left_1_joint", "caster_back_left_2_joint", 
+               "caster_front_left_1_joint", "caster_front_left_2_joint", 
+               "caster_back_right_1_joint", "caster_back_right_2_joint",
+               "caster_front_right_1_joint", "caster_front_right_2_joint",
+               "suspension_left_joint", "suspension_right_joint"]
 
 
 # Calculate joint velocities
@@ -63,6 +71,7 @@ def joint_state_callback(msg):
     global current_joint_positions
     try:
         # Iterate over the joint names we're interested in, and update their positions
+
         for i, name in enumerate(joint_names):
             if name in msg.name:
                 index = msg.name.index(name)
@@ -71,25 +80,45 @@ def joint_state_callback(msg):
                 rospy.logwarn(f"Joint {name} not found in the JointState message.")
     except Exception as e:
         rospy.logerr(f"Error in joint_state_callback: {e}")
-
+ 
 
 # Subscribe to the current joint state
 rospy.Subscriber('/joint_states', JointState, joint_state_callback)
 
-def apply_joint_velocities(joint_names, joint_velocities_list):
+def apply_gripper():
+    gripper = [0,0]
+    return gripper
+
+def apply_joint_velocities(joint_names, joint_velocities):
     # Create a JointTrajectory message
     traj_msg = JointTrajectory()
     traj_msg.header.stamp = rospy.Time.now()
     traj_msg.joint_names = joint_names
     
     point = JointTrajectoryPoint()
-    point.velocities = joint_velocities_list
+
+    all_velocities = [0] * len(joint_names)
+
+    for i, name in enumerate(joint_names):
+        if name in joint_velocities:
+            all_velocities[i] = joint_velocities[name]
+    
+    point.velocities = all_velocities
     point.time_from_start = rospy.Duration(1)  # Adjust based on your requirements
     traj_msg.points.append(point)
-    print("traj_msg", traj_msg.joint_names)
     
     # Publish the message
     arm_pub.publish(traj_msg)
+
+    # gripper = apply_gripper()
+    # point.velocities = joint_velocities_list + gripper
+    # point.time_from_start = rospy.Duration(1)  # Adjust based on your requirements
+    # traj_msg.points.append(point)
+    # print("traj_msg", traj_msg.joint_names)
+    # print("traj_msg",traj_msg.points)
+    
+    # # Publish the message
+    # arm_pub.publish(traj_msg)
 
 desired_twist = Twist()
 
@@ -120,11 +149,12 @@ def teleop_loop():
         # print("current_joint_positions", current_joint_positions)
         
         # Convert JntArray to list
-        joint_velocities_list = [joint_velocities[i] for i in range(number_of_joints)]
-        rospy.loginfo(joint_velocities_list)
+        # joint_velocities_list = [joint_velocities[i] for i in range(number_of_joints)]
+        joint_velocities_dict = {joint_names[i]: joint_velocities[i] for i in range(number_of_joints)}
+        # rospy.loginfo(joint_velocities_list)
 
         # Apply the calculated joint velocities to the robot
-        apply_joint_velocities(joint_names, joint_velocities_list)
+        apply_joint_velocities(joint_names, joint_velocities_dict)
 
         rospy.sleep(0.1)  # Adjust the loop rate as needed
 
