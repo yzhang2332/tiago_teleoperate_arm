@@ -82,11 +82,15 @@ def joint_state_callback(msg):
             current_joint_positions[i] = msg.position[index]
     except Exception as e:
         rospy.logerr(f"Error in joint_state_callback: {e}")
-    print("current postion", current_joint_positions)
+    # print("current postion", current_joint_positions)
  
 
 # Subscribe to the current joint state
 rospy.Subscriber('/joint_states', JointState, joint_state_callback)
+
+# wait to get first values
+rospy.sleep(1.0)
+
 
 def apply_joint_positions(joint_position_dict):
     # Create a JointTrajectory message
@@ -105,7 +109,7 @@ def apply_joint_positions(joint_position_dict):
     point.time_from_start = rospy.Duration(1)  # Adjust based on your requirements
     traj_msg.points.append(point)
 
-    print("message", traj_msg)
+    # print("message", traj_msg)
     
     # Publish the message
     arm_pub.publish(traj_msg)
@@ -132,9 +136,9 @@ def update_desired_frame(delta_x=0, delta_y=0, delta_z=0, delta_roll=0, delta_pi
 def on_press(key):
     # Determine the change based on the key pressed
     if key == Key.up:
-        update_desired_frame(delta_z=0.05)  # Move up along the z-axis
+        update_desired_frame(delta_x=0.05)  # Move up along the z-axis
     elif key == Key.down:
-        update_desired_frame(delta_z=-0.05)  # Move down along the z-axis
+        update_desired_frame(delta_x=-0.05)  # Move down along the z-axis
     elif key == Key.left:
         update_desired_frame(delta_y=0.05)  # Move left along the y-axis
     elif key == Key.right:
@@ -155,7 +159,7 @@ def teleop_loop():
         # joint_velocities_list = [joint_velocities[i] for i in range(number_of_joints)]
         joint_positions_dict = {joint_names[i]: desired_joint_positions[i] for i in range(number_of_joints)}
         
-        print("dict", joint_positions_dict)
+        # print("dict", joint_positions_dict)
         # Apply the calculated joint positions to the robot
         apply_joint_positions(joint_positions_dict)
 
