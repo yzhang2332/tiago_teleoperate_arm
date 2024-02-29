@@ -3,14 +3,14 @@
   <model name='smooth_cube'>
     <link name='link_0'>
       <inertial>
-        <mass>0.001</mass>
+        <mass>0.0001</mass>
         <inertia>
-          <ixx>0.166667</ixx>
+          <ixx>0.01</ixx>
           <ixy>0</ixy>
           <ixz>0</ixz>
-          <iyy>0.166667</iyy>
+          <iyy>0.01</iyy>
           <iyz>0</iyz>
-          <izz>0.166667</izz>
+          <izz>0.01</izz>
         </inertia>
         <pose>0 0 0 0 -0 0</pose>
       </inertial>
@@ -57,8 +57,8 @@
         <surface>
           <friction>
             <ode>
-              <mu>1</mu>
-              <mu2>1</mu2>
+              <mu>2</mu>
+              <mu2>2</mu2>
               <fdir1>0 0 0</fdir1>
               <slip1>0</slip1>
               <slip2>0</slip2>

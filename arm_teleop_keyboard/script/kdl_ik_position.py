@@ -7,105 +7,64 @@ from PyKDL import ChainFkSolverPos_recursive, ChainIkSolverPos_LMA, Frame, Vecto
 from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from pynput.keyboard import Key, Listener
-
-# Initialize ROS node
-rospy.init_node('tiago_arm_teleop_position')
-
-# Load the robot model from parameter server
-robot_urdf = URDF.from_parameter_server()
-
-# Generate a KDL tree from the URDF model
-success, kdl_tree = treeFromUrdfModel(robot_urdf)
-if not success:
-    rospy.logerr("Failed to extract KDL tree from URDF robot model.")
-    exit(1)
-
-# Specify the chain: from base link to end-effector link
-# base_link = "base_link"
-base_link = "torso_lift_link"
-end_effector_link = "gripper_link"
-chain = kdl_tree.getChain(base_link, end_effector_link)
-
-# Replace velocity IK solver with position IK solver
-ik_solver_pos = ChainIkSolverPos_LMA(chain)
-
-
-# Initialize the joint array with the number of joints
-number_of_joints = chain.getNrOfJoints()
-desired_joint_positions = JntArray(number_of_joints)
-current_joint_positions = JntArray(number_of_joints)
-print(number_of_joints)
-
-'''
-print("Number of Joints in the chain:", chain.getNrOfJoints())
-print("Number of Segments in the chain:", chain.getNrOfSegments())
-
-# Loop through each segment to print its details
-for i in range(chain.getNrOfSegments()):
-    segment = chain.getSegment(i)
-    print("Segment", i, ":")
-    print("  Name:", segment.getName())
-    print("  Joint Name:", segment.getJoint().getName())
-    print("  Joint Type:", segment.getJoint().getTypeName())
-    print("  Frame to Tip:", segment.getFrameToTip())
-    print("  Joint Origin:", segment.getJoint().JointOrigin())
-    print("  Joint Axis:", segment.getJoint().JointAxis())
-
-# If you want to verify the entire structure, you could also print the names of all segments and joints
-print("\nAll segment names in the chain:")
-for i in range(chain.getNrOfSegments()):
-    print(chain.getSegment(i).getName())
-
-print("\nChecking if the base link and end-effector link are correct:")
-print("Base Link:", base_link)
-print("End-effector Link:", end_effector_link)
-'''
-
-# Publisher for controlling the robot's arm
-arm_pub = rospy.Publisher('/arm_controller/command', JointTrajectory, queue_size=10)
-
-# List of joint names for TIAGO's arm - Update this list to match your configuration
-joint_names = ["arm_1_joint", "arm_2_joint", "arm_3_joint", 
-               "arm_4_joint", "arm_5_joint", "arm_6_joint", "arm_7_joint"
-               ]
-
-arm_joint_names = ["arm_1_joint", "arm_2_joint", "arm_3_joint", 
-               "arm_4_joint", "arm_5_joint", "arm_6_joint", "arm_7_joint"
-               ]
+import actionlib
+from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
 
 # Subscriber callback for updating current joint positions
 def joint_state_callback(msg):
-    global current_joint_positions
+    global current_joint_positions, current_gripper_position
     try:
         for i, name in enumerate(joint_names):
             index = msg.name.index(name)
             current_joint_positions[i] = msg.position[index]
+        gripper_index = msg.name.index("gripper_left_finger_joint")
+        current_gripper_position[0] = msg.position[gripper_index]*2
+        current_gripper_position[1] = msg.position[gripper_index]*2
     except Exception as e:
-        rospy.logerr(f"Error in joint_state_callback: {e}")
-    # print("current postion", current_joint_positions)
- 
-
-# Subscribe to the current joint state
-rospy.Subscriber('/joint_states', JointState, joint_state_callback)
-
-# wait to get first values
-rospy.sleep(1.0)
+        rospy.logerr(f"Error in joint_state_callback: {e}") 
 
 
+def update_gripper_position(increment):
+    global current_gripper_position
+
+    # Update the current position based on the increment/decrement value
+    new_position = [pos + increment for pos in current_gripper_position]
+
+    # Ensure the new position is within the allowable range
+    # Assuming the gripper range is between 0 (fully closed) and 0.04 (fully open)
+    new_position = [max(0, min(1, pos)) for pos in new_position]
+
+    # Update the global variable
+    current_gripper_position = new_position
+
+    # Create and send the new goal to the action server
+    goal = FollowJointTrajectoryGoal()
+    trajectory = JointTrajectory()
+    trajectory.joint_names = ['gripper_left_finger_joint', 'gripper_right_finger_joint']
+    point = JointTrajectoryPoint()
+    point.positions = current_gripper_position
+    point.time_from_start = rospy.Duration(0.5)
+    trajectory.points.append(point)
+    goal.trajectory = trajectory
+    
+    gripper_client.send_goal(goal)
+    gripper_client.wait_for_result()
+
+    
 def apply_joint_positions(joint_position_dict):
     # Create a JointTrajectory message
     traj_msg = JointTrajectory()
     traj_msg.header.stamp = rospy.Time.now()
-    traj_msg.joint_names = arm_joint_names
+    traj_msg.joint_names = joint_names
     
     point = JointTrajectoryPoint()
 
-    all_velocities = [0] * len(arm_joint_names)
+    all_position = [0] * len(joint_names)
 
-    for i, name in enumerate(arm_joint_names):
-        all_velocities[i] = joint_position_dict[name]
+    for i, name in enumerate(joint_names):
+        all_position[i] = joint_position_dict[name]
     
-    point.positions = all_velocities
+    point.positions = all_position
     point.time_from_start = rospy.Duration(1)  # Adjust based on your requirements
     traj_msg.points.append(point)
 
@@ -113,10 +72,6 @@ def apply_joint_positions(joint_position_dict):
     
     # Publish the message
     arm_pub.publish(traj_msg)
-
-
-# Initialize Forward Kinematics solver
-fk_solver = ChainFkSolverPos_recursive(chain)
 
 # Function to get the current pose of the end-effector
 def get_current_end_effector_pose():
@@ -136,18 +91,30 @@ def update_desired_frame(delta_x=0, delta_y=0, delta_z=0, delta_roll=0, delta_pi
 def on_press(key):
     # Determine the change based on the key pressed
     if key == Key.up:
-        update_desired_frame(delta_x=0.05)  # Move up along the z-axis
+        update_desired_frame(delta_x=0.01)  # Move up along the z-axis
     elif key == Key.down:
-        update_desired_frame(delta_x=-0.05)  # Move down along the z-axis
+        update_desired_frame(delta_x=-0.01)  # Move down along the z-axis
     elif key == Key.left:
-        update_desired_frame(delta_y=0.05)  # Move left along the y-axis
+        update_desired_frame(delta_y=0.01)  # Move left along the y-axis
     elif key == Key.right:
-        update_desired_frame(delta_y=-0.05)  # Move right along the y-axis
-    # Add more key bindings as needed to control other axes or rotation
+        update_desired_frame(delta_y=-0.01)  # Move right along the y-axis
+    elif hasattr(key, 'char'):
+        if key.char == 'w':
+            update_desired_frame(delta_z=0.01)  # Move up along the z-axis
+        elif key.char == 's':
+            update_desired_frame(delta_z=-0.01)  # Move down along the z-axis
+        elif key.char == 'a':
+            update_gripper_position(0.015)
+        elif key.char == 'd':
+            update_gripper_position(-0.015)
+        elif key.char == 'q':
+            # Rotate arm_7_joint clockwise
+            update_desired_frame(delta_yaw=0.02)
+        elif key.char == 'e':
+            # Rotate arm_7_joint counter-clockwise
+            update_desired_frame(delta_yaw=-0.02)  # Adjust this value as needed
 
-# Initialize desired_frame with the current end-effector pose at the start of the script or inside a suitable initialization function
-desired_frame = get_current_end_effector_pose()
-print("desired frame", desired_frame)
+    # Add more key bindings as needed to control other axes or rotation
 
 def teleop_loop():
     # Main loop for teleoperation
@@ -164,8 +131,88 @@ def teleop_loop():
         apply_joint_positions(joint_positions_dict)
 
         rospy.sleep(0.1)  # Adjust the loop rate as needed
+    
+def run():
+    global ik_solver_pos, desired_joint_positions, joint_names, number_of_joints, fk_solver, arm_pub, gripper_client, desired_frame, current_gripper_position, current_joint_positions
+    # Load the robot model from parameter server
+    robot_urdf = URDF.from_parameter_server()
 
-if __name__ == "__main__":
+    # Generate a KDL tree from the URDF model
+    success, kdl_tree = treeFromUrdfModel(robot_urdf)
+    if not success:
+        rospy.logerr("Failed to extract KDL tree from URDF robot model.")
+        exit(1)
+
+    # Specify the chain: from base link to end-effector link
+    # base_link = "base_link"
+    base_link = "torso_lift_link"
+    end_effector_link = "gripper_link"
+    chain = kdl_tree.getChain(base_link, end_effector_link)
+
+    # Replace velocity IK solver with position IK solver
+    ik_solver_pos = ChainIkSolverPos_LMA(chain)
+
+
+    # Initialize the joint array with the number of joints
+    number_of_joints = chain.getNrOfJoints()
+    desired_joint_positions = JntArray(number_of_joints)
+    current_joint_positions = JntArray(number_of_joints)
+    # print(number_of_joints)
+
+    '''
+    print("Number of Joints in the chain:", chain.getNrOfJoints())
+    print("Number of Segments in the chain:", chain.getNrOfSegments())
+
+    # Loop through each segment to print its details
+    for i in range(chain.getNrOfSegments()):
+        segment = chain.getSegment(i)
+        print("Segment", i, ":")
+        print("  Name:", segment.getName())
+        print("  Joint Name:", segment.getJoint().getName())
+        print("  Joint Type:", segment.getJoint().getTypeName())
+        print("  Frame to Tip:", segment.getFrameToTip())
+        print("  Joint Origin:", segment.getJoint().JointOrigin())
+        print("  Joint Axis:", segment.getJoint().JointAxis())
+
+    # If you want to verify the entire structure, you could also print the names of all segments and joints
+    print("\nAll segment names in the chain:")
+    for i in range(chain.getNrOfSegments()):
+        print(chain.getSegment(i).getName())
+
+    print("\nChecking if the base link and end-effector link are correct:")
+    print("Base Link:", base_link)
+    print("End-effector Link:", end_effector_link)
+    '''
+
+    # Initialize Forward Kinematics solver
+    fk_solver = ChainFkSolverPos_recursive(chain)
+
+    # List of joint names for TIAGO's arm - Update this list to match your configuration
+    joint_names = ["arm_1_joint", "arm_2_joint", "arm_3_joint", 
+                "arm_4_joint", "arm_5_joint", "arm_6_joint", "arm_7_joint"
+                ]
+
+    current_gripper_position = [0, 0]
+
+    # Publisher for controlling the robot's arm
+    arm_pub = rospy.Publisher('/arm_controller/command', JointTrajectory, queue_size=10)
+
+    gripper_client = actionlib.SimpleActionClient('/parallel_gripper_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
+    gripper_client.wait_for_server()
+
+    # Subscribe to the current joint state
+    rospy.Subscriber('/joint_states', JointState, joint_state_callback)
+    rospy.loginfo("gripper server connected.")
+
+    # wait to get first values
+    rospy.wait_for_message("joint_states", JointState)
+    rospy.sleep(1.0)
+
+    # Initialize desired_frame with the current end-effector pose at the start of the script or inside a suitable initialization function
+    desired_frame = get_current_end_effector_pose()
+    # print("desired frame", desired_frame)
+
+
     # Start listening to keyboard events
     listener = Listener(on_press=on_press)
     listener.start()
@@ -176,3 +223,13 @@ if __name__ == "__main__":
         pass
     finally:
         listener.stop()
+
+
+
+if __name__ == "__main__":
+    # Initialize ROS node
+    rospy.init_node('tiago_arm_teleop_position')
+
+    run()
+
+    
