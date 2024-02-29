@@ -28,7 +28,7 @@ def play_action(action_name):
   elif action_name == 'shake_hands':
     rospy.loginfo("shake hands...")
     text = "Let's shake hands."
-    TTSFunction.text_to_speech(text)
+    # TTSFunction.text_to_speech(text)
     goal.motion_name = 'shake_hands'
     goal.skip_planning = False
 
