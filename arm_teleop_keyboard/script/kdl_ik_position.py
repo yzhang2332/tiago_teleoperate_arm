@@ -12,7 +12,7 @@ from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryG
 
 # Subscriber callback for updating current joint positions
 def joint_state_callback(msg):
-    global current_joint_positions, current_gripper_position
+    global current_joint_positions, current_gripper_position, current_head_position
     try:
         for i, name in enumerate(joint_names):
             index = msg.name.index(name)
@@ -20,6 +20,10 @@ def joint_state_callback(msg):
         gripper_index = msg.name.index("gripper_left_finger_joint")
         current_gripper_position[0] = msg.position[gripper_index]*2
         current_gripper_position[1] = msg.position[gripper_index]*2
+        head_1_index = msg.name.index("head_1_joint")
+        head_2_index = msg.name.index("head_2_joint")
+        current_head_position[0] = msg.position[head_1_index]
+        current_head_position[1] = msg.position[head_2_index]
     except Exception as e:
         rospy.logerr(f"Error in joint_state_callback: {e}") 
 
@@ -50,6 +54,27 @@ def update_gripper_position(increment):
     gripper_client.send_goal(goal)
     gripper_client.wait_for_result()
 
+def update_head_position(pan_increment=0.0, tilt_increment=0.0):
+    global current_head_position
+    
+    current_head_position[0] += pan_increment
+    current_head_position[1] += tilt_increment
+    
+    current_head_position[0] = max(-1.25, min(1.25, current_head_position[0]))
+    current_head_position[1] = max(-1.25, min(1.25, current_head_position[1]))
+
+    goal = FollowJointTrajectoryGoal()
+    trajectory = JointTrajectory()
+    trajectory.joint_names = ['head_1_joint', 'head_2_joint']
+    point = JointTrajectoryPoint()
+    point.positions = current_head_position
+    point.time_from_start = rospy.Duration(0.5)
+    trajectory.points.append(point)
+    goal.trajectory = trajectory
+    
+    head_client.send_goal(goal)
+    head_client.wait_for_result()
+    
     
 def apply_joint_positions(joint_position_dict):
     # Create a JointTrajectory message
@@ -113,6 +138,15 @@ def on_press(key):
         elif key.char == 'e':
             # Rotate arm_7_joint counter-clockwise
             update_desired_frame(delta_yaw=-0.02)  # Adjust this value as needed
+        elif key.char == 't':
+            update_head_position(tilt_increment=0.2)
+        elif key.char == 'g':
+            update_head_position(tilt_increment=-0.2)
+        elif key.char == 'f':
+            update_head_position(pan_increment=0.2)
+        elif key.char == 'h':
+            update_head_position(pan_increment=-0.2)
+        
 
     # Add more key bindings as needed to control other axes or rotation
 
@@ -133,7 +167,7 @@ def teleop_loop():
         rospy.sleep(0.1)  # Adjust the loop rate as needed
     
 def run():
-    global ik_solver_pos, desired_joint_positions, joint_names, number_of_joints, fk_solver, arm_pub, gripper_client, desired_frame, current_gripper_position, current_joint_positions
+    global ik_solver_pos, desired_joint_positions, joint_names, number_of_joints, fk_solver, arm_pub, gripper_client, desired_frame, current_gripper_position, current_joint_positions, current_head_position, head_client
     # Load the robot model from parameter server
     robot_urdf = URDF.from_parameter_server()
 
@@ -193,12 +227,16 @@ def run():
                 ]
 
     current_gripper_position = [0, 0]
+    current_head_position = [0, 0]
 
     # Publisher for controlling the robot's arm
     arm_pub = rospy.Publisher('/arm_controller/command', JointTrajectory, queue_size=10)
 
     gripper_client = actionlib.SimpleActionClient('/parallel_gripper_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
     gripper_client.wait_for_server()
+
+    head_client = actionlib.SimpleActionClient('/head_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
+    head_client.wait_for_server()
 
     # Subscribe to the current joint state
     rospy.Subscriber('/joint_states', JointState, joint_state_callback)
