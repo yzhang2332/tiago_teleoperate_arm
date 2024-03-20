@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import time
 from urdf_parser_py.urdf import URDF
 from kdl_parser_py.urdf import treeFromUrdfModel
 from PyKDL import ChainFkSolverPos_recursive, ChainIkSolverPos_LMA, Frame, Vector, Rotation, JntArray
@@ -9,6 +10,16 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from pynput.keyboard import Key, Listener
 import actionlib
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
+from controller_manager_msgs.srv import SwitchController
+
+# def switch_controllers():
+#     rospy.wait_for_service('/controller_manager/switch_controller')
+#     try:
+#         switch_controller = rospy.ServiceProxy('/controller_manager/switch_controller', SwitchController)
+#         resp = switch_controller(start_controllers=['arm_controller'], stop_controllers=[], strictness=0)
+#         return resp.ok # Check if the service call was successful
+#     except rospy.ServiceException as e:
+#         print("Service call failed: %s" % e)
 
 # Subscriber callback for updating current joint positions
 def joint_state_callback(msg):
@@ -76,28 +87,34 @@ def update_head_position(pan_increment=0.0, tilt_increment=0.0):
     head_client.wait_for_result()
     
     
-def apply_joint_positions(joint_position_dict):
+def apply_joint_positions(c, joint_position_dict):
     # Create a JointTrajectory message
+    duration = 0.5
     traj_msg = JointTrajectory()
-    traj_msg.header.stamp = rospy.Time.now()
+    # traj_msg.header.stamp = rospy.Time.now()
     traj_msg.joint_names = joint_names
+
+    # start_point = JointTrajectoryPoint()
+    # start_point.positions = [c[0], c[1], c[2], c[3], c[4], c[5], c[6]]
+    # start_point.time_from_start = rospy.Duration(0)
+    # traj_msg.points.append(start_point)
     
     point = JointTrajectoryPoint()
 
     all_position = [0] * len(joint_names)
 
     for i, name in enumerate(joint_names):
-        all_position[i] = joint_position_dict[name]
-    
+        all_position[i] = round(joint_position_dict[name], 4)
+    rospy.loginfo(all_position)
     point.positions = all_position
-    point.time_from_start = rospy.Duration(1)  # Adjust based on your requirements
+    point.time_from_start = rospy.Duration(duration)  # Adjust based on your requirements
     traj_msg.points.append(point)
 
-    rospy.loginfo(traj_msg)
+    # rospy.loginfo(traj_msg)
     
     # Publish the message
     arm_pub.publish(traj_msg)
-    rospy.sleep(0.2)
+    # time.sleep(duration)
 
 # Function to get the current pose of the end-effector
 def get_current_end_effector_pose():
@@ -153,8 +170,10 @@ def on_press(key):
     # Add more key bindings as needed to control other axes or rotation
 
 def teleop_loop():
+    
     # Main loop for teleoperation
     while not rospy.is_shutdown():
+        rospy.loginfo("inside the while loop")
         # Update joint velocities based on the current desired_twist
         ik_solver_pos.CartToJnt(current_joint_positions, desired_frame, desired_joint_positions)
         
@@ -164,9 +183,9 @@ def teleop_loop():
         
         # print("dict", joint_positions_dict)
         # Apply the calculated joint positions to the robot
-        apply_joint_positions(joint_positions_dict)
+        apply_joint_positions(current_joint_positions, joint_positions_dict)
 
-        rospy.sleep(0.1)  # Adjust the loop rate as needed
+        rospy.sleep(0.5)  # Adjust the loop rate as needed
     
 def run():
     global ik_solver_pos, desired_joint_positions, joint_names, number_of_joints, fk_solver, arm_pub, gripper_client, desired_frame, current_gripper_position, current_joint_positions, current_head_position, head_client
@@ -232,7 +251,7 @@ def run():
     current_head_position = [0, 0]
 
     # Publisher for controlling the robot's arm
-    arm_pub = rospy.Publisher('/arm_controller/command', JointTrajectory, queue_size=10)
+    arm_pub = rospy.Publisher('/arm_controller/safe_command', JointTrajectory, queue_size=1)
 
     gripper_client = actionlib.SimpleActionClient('/parallel_gripper_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
     gripper_client.wait_for_server()
@@ -246,20 +265,26 @@ def run():
 
     # wait to get first values
     rospy.wait_for_message("joint_states", JointState)
-    rospy.sleep(1.0)
+    rospy.sleep(2.0)
     rospy.loginfo("Get the joint states message")
 
     # Initialize desired_frame with the current end-effector pose at the start of the script or inside a suitable initialization function
     desired_frame = get_current_end_effector_pose()
-    # print("desired frame", desired_frame)
-
+    # print("desired frame", desired_frame)SwitchController
 
     # Start listening to keyboard events
     listener = Listener(on_press=on_press)
     listener.start()
+    rospy.loginfo("Listening to key press")
 
     try:
         teleop_loop()
+        # if switch_controllers():
+        #     rospy.loginfo("Successfully switched controllers.")
+        #     teleop_loop()
+        # else:
+        #     rospy.loginfo("Failed to switch controllers")
+        
     except rospy.ROSInterruptException:
         pass
     finally:
