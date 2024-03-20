@@ -4,6 +4,17 @@ import os
 import time
 import signal
 
+# Define a signal handler for SIGINT
+def signal_handler(sig, frame):
+    print('Stopping recording...')
+    os.killpg(os.getpgid(process.pid), signal.SIGINT)
+    process.wait()
+    print('Recording stopped.')
+    exit(0)
+
+# Register the signal handler for SIGINT (Ctrl+C)
+signal.signal(signal.SIGINT, signal_handler)
+
 # Ensure the directory exists
 directory = "/home/pal/rosbags/"
 if not os.path.exists(directory):
@@ -24,11 +35,7 @@ command = f"rosbag record {topics} -O {bag_file_name}"
 # Start recording
 process = subprocess.Popen(command, shell=True, preexec_fn=os.setsid)
 
-# Wait for a while or execute other logic
-time.sleep(10)
-
-# Stop recording by sending SIGINT to the process group, emulating Ctrl+C
-os.killpg(os.getpgid(process.pid), signal.SIGINT)
-
-# Optionally, wait for the command to complete
-process.wait()
+# Keep the script running until Ctrl+C is pressed
+print("Recording... Press Ctrl+C to stop.")
+while True:
+    time.sleep(1)
