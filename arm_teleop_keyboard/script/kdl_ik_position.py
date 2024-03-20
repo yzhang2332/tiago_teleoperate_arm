@@ -97,6 +97,7 @@ def apply_joint_positions(joint_position_dict):
     
     # Publish the message
     arm_pub.publish(traj_msg)
+    rospy.sleep(0.2)
 
 # Function to get the current pose of the end-effector
 def get_current_end_effector_pose():
@@ -115,19 +116,20 @@ def update_desired_frame(delta_x=0, delta_y=0, delta_z=0, delta_roll=0, delta_pi
 
 def on_press(key):
     # Determine the change based on the key pressed
+    dis = 0.01
     if key == Key.up:
-        update_desired_frame(delta_x=0.01)  # Move up along the z-axis
+        update_desired_frame(delta_x=dis)  # Move up along the z-axis
     elif key == Key.down:
-        update_desired_frame(delta_x=-0.01)  # Move down along the z-axis
+        update_desired_frame(delta_x=-dis)  # Move down along the z-axis
     elif key == Key.left:
-        update_desired_frame(delta_y=0.01)  # Move left along the y-axis
+        update_desired_frame(delta_y=dis)  # Move left along the y-axis
     elif key == Key.right:
-        update_desired_frame(delta_y=-0.01)  # Move right along the y-axis
+        update_desired_frame(delta_y=-dis)  # Move right along the y-axis
     elif hasattr(key, 'char'):
         if key.char == 'w':
-            update_desired_frame(delta_z=0.01)  # Move up along the z-axis
+            update_desired_frame(delta_z=dis)  # Move up along the z-axis
         elif key.char == 's':
-            update_desired_frame(delta_z=-0.01)  # Move down along the z-axis
+            update_desired_frame(delta_z=-dis)  # Move down along the z-axis
         elif key.char == 'a':
             update_gripper_position(0.015)
         elif key.char == 'd':
