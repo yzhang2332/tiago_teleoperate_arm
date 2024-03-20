@@ -93,7 +93,7 @@ def apply_joint_positions(joint_position_dict):
     point.time_from_start = rospy.Duration(1)  # Adjust based on your requirements
     traj_msg.points.append(point)
 
-    # print("message", traj_msg)
+    rospy.loginfo(traj_msg)
     
     # Publish the message
     arm_pub.publish(traj_msg)
@@ -115,6 +115,7 @@ def update_desired_frame(delta_x=0, delta_y=0, delta_z=0, delta_roll=0, delta_pi
 
 def on_press(key):
     # Determine the change based on the key pressed
+    # rospy.loginfo("keyboard on press")
     if key == Key.up:
         update_desired_frame(delta_x=0.01)  # Move up along the z-axis
     elif key == Key.down:
@@ -191,7 +192,7 @@ def run():
     number_of_joints = chain.getNrOfJoints()
     desired_joint_positions = JntArray(number_of_joints)
     current_joint_positions = JntArray(number_of_joints)
-    # print(number_of_joints)
+    # rospy.loginfo(number_of_joints)
 
     '''
     print("Number of Joints in the chain:", chain.getNrOfJoints())
@@ -245,6 +246,7 @@ def run():
     # wait to get first values
     rospy.wait_for_message("joint_states", JointState)
     rospy.sleep(1.0)
+    rospy.loginfo("Get the joint states message")
 
     # Initialize desired_frame with the current end-effector pose at the start of the script or inside a suitable initialization function
     desired_frame = get_current_end_effector_pose()
