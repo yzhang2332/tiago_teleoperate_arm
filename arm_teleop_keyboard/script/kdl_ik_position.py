@@ -12,6 +12,8 @@ import actionlib
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
 from controller_manager_msgs.srv import SwitchController
 
+
+
 # def switch_controllers():
 #     rospy.wait_for_service('/controller_manager/switch_controller')
 #     try:
@@ -138,6 +140,7 @@ def set_distance(distance):
 def on_press(key):
     global dis
     # Determine the change based on the key pressed
+    
     if key == Key.up:
         update_desired_frame(delta_x=dis)  # Move up along the z-axis
     elif key == Key.down:
@@ -152,15 +155,15 @@ def on_press(key):
         elif key.char == 's':
             update_desired_frame(delta_z=-dis)  # Move down along the z-axis
         elif key.char == 'a':
-            update_gripper_position(dis)
+            update_gripper_position(0.025)
         elif key.char == 'd':
-            update_gripper_position(-dis)
+            update_gripper_position(-0.025)
         elif key.char == 'q':
             # Rotate arm_7_joint clockwise
-            update_desired_frame(delta_yaw=0.1)
+            update_desired_frame(delta_yaw=dis*10)
         elif key.char == 'e':
             # Rotate arm_7_joint counter-clockwise
-            update_desired_frame(delta_yaw=-0.1)  # Adjust this value as needed
+            update_desired_frame(delta_yaw=-dis*10)  # Adjust this value as needed
         elif key.char == 't':
             update_head_position(tilt_increment=0.2)
         elif key.char == 'g':
@@ -295,6 +298,7 @@ def run():
     rospy.loginfo("Listening to key press")
 
     try:
+        
         teleop_loop()
         # if switch_controllers():
         #     rospy.loginfo("Successfully switched controllers.")
