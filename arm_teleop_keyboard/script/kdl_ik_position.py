@@ -131,9 +131,13 @@ def update_desired_frame(delta_x=0, delta_y=0, delta_z=0, delta_roll=0, delta_pi
     rotation = Rotation.RPY(roll + delta_roll, pitch + delta_pitch, yaw + delta_yaw)
     desired_frame = Frame(rotation, position)
 
+def set_distance(distance):
+    global dis
+    dis = distance
+
 def on_press(key):
+    global dis
     # Determine the change based on the key pressed
-    dis = 0.01
     if key == Key.up:
         update_desired_frame(delta_x=dis)  # Move up along the z-axis
     elif key == Key.down:
@@ -148,9 +152,9 @@ def on_press(key):
         elif key.char == 's':
             update_desired_frame(delta_z=-dis)  # Move down along the z-axis
         elif key.char == 'a':
-            update_gripper_position(0.015)
+            update_gripper_position(dis)
         elif key.char == 'd':
-            update_gripper_position(-0.015)
+            update_gripper_position(-dis)
         elif key.char == 'q':
             # Rotate arm_7_joint clockwise
             update_desired_frame(delta_yaw=0.1)
@@ -165,11 +169,22 @@ def on_press(key):
             update_head_position(pan_increment=0.2)
         elif key.char == 'h':
             update_head_position(pan_increment=-0.2)
+        elif key.char == '1':
+            set_distance(0.01)
+        elif key.char == "2":
+            set_distance(0.05)
+        elif key.char == "3":
+            set_distance(0.10)
+        elif key.char == "4":
+            set_distance(0.15)
+        elif key.char == "5":
+            set_distance(0.20)
+        elif key.char == "6":
+            set_distance(0.25)
     
     # Add more key bindings as needed to control other axes or rotation
 
 def teleop_loop():
-    
     # Main loop for teleoperation
     while not rospy.is_shutdown():
         rospy.loginfo("inside the while loop")
@@ -188,6 +203,9 @@ def teleop_loop():
     
 def run():
     global ik_solver_pos, desired_joint_positions, joint_names, number_of_joints, fk_solver, arm_pub, gripper_client, desired_frame, current_gripper_position, current_joint_positions, current_head_position, head_client
+    global dis
+    dis = 0.01
+    
     # Load the robot model from parameter server
     robot_urdf = URDF.from_parameter_server()
 
