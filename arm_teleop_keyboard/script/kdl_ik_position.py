@@ -153,10 +153,10 @@ def on_press(key):
             update_gripper_position(-0.015)
         elif key.char == 'q':
             # Rotate arm_7_joint clockwise
-            update_desired_frame(delta_yaw=0.02)
+            update_desired_frame(delta_yaw=0.1)
         elif key.char == 'e':
             # Rotate arm_7_joint counter-clockwise
-            update_desired_frame(delta_yaw=-0.02)  # Adjust this value as needed
+            update_desired_frame(delta_yaw=-0.1)  # Adjust this value as needed
         elif key.char == 't':
             update_head_position(tilt_increment=0.2)
         elif key.char == 'g':
@@ -165,8 +165,7 @@ def on_press(key):
             update_head_position(pan_increment=0.2)
         elif key.char == 'h':
             update_head_position(pan_increment=-0.2)
-        
-
+    
     # Add more key bindings as needed to control other axes or rotation
 
 def teleop_loop():

@@ -28,7 +28,8 @@ current_time = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 # bag_file_name = f"/home/rosbags/record_{current_time}.bag"
 bag_file_name = f"{directory}record_{current_time}.bag"
 
-topics = "/xtion/rgb/image_raw /joint_states /audio"
+# topics = "/xtion/rgb/image_raw /joint_states /audio"
+topics = "/joint_states /audio"
 
 # Define the command to start recording all topics to the named bag file
 command = f"rosbag record {topics} -O {bag_file_name}"
