@@ -11,7 +11,7 @@ def image_callback(msg):
     bridge = CvBridge()
     window_name = 'Tiago Camera View'
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)  # Create a window that can be resized
-    cv2.resizeWindow(window_name, 1280, 1280) 
+    cv2.resizeWindow(window_name, 640, 480) 
     # Convert the ROS Image message to OpenCV2 format
     cv2_img = bridge.imgmsg_to_cv2(msg, "bgr8")
 

@@ -154,9 +154,9 @@ def on_press(key):
             update_desired_frame(delta_z=dis)  # Move up along the z-axis
         elif key.char == 's':
             update_desired_frame(delta_z=-dis)  # Move down along the z-axis
-        elif key.char == 'a':
+        elif key.char == 'z':
             update_gripper_position(0.025)
-        elif key.char == 'd':
+        elif key.char == 'c':
             update_gripper_position(-0.025)
         elif key.char == 'q':
             # Rotate arm_7_joint clockwise
