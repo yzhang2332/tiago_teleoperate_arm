@@ -90,8 +90,8 @@ def update_head_position(pan_increment=0.0, tilt_increment=0.0):
     
     
 def apply_joint_positions(c, joint_position_dict):
+    global duration
     # Create a JointTrajectory message
-    duration = 0.5
     traj_msg = JointTrajectory()
     # traj_msg.header.stamp = rospy.Time.now()
     traj_msg.joint_names = joint_names
@@ -107,7 +107,7 @@ def apply_joint_positions(c, joint_position_dict):
 
     for i, name in enumerate(joint_names):
         all_position[i] = round(joint_position_dict[name], 4)
-    rospy.loginfo(all_position)
+    # rospy.loginfo(all_position)
     point.positions = all_position
     point.time_from_start = rospy.Duration(duration)  # Adjust based on your requirements
     traj_msg.points.append(point)
@@ -133,14 +133,15 @@ def update_desired_frame(delta_x=0, delta_y=0, delta_z=0, delta_roll=0, delta_pi
     rotation = Rotation.RPY(roll + delta_roll, pitch + delta_pitch, yaw + delta_yaw)
     desired_frame = Frame(rotation, position)
 
-def set_distance(distance):
-    global dis
+def set_distance(distance, dura):
+    global dis, duration
     dis = distance
+    duration = dura
 
 def on_press(key):
     global dis
     # Determine the change based on the key pressed
-    
+   
     if key == Key.up:
         update_desired_frame(delta_x=dis)  # Move up along the z-axis
     elif key == Key.down:
@@ -173,24 +174,24 @@ def on_press(key):
         elif key.char == 'h':
             update_head_position(pan_increment=-0.2)
         elif key.char == '1':
-            set_distance(0.01)
+            set_distance(0.01, 0.5)
         elif key.char == "2":
-            set_distance(0.05)
+            set_distance(0.05, 0.8)
         elif key.char == "3":
-            set_distance(0.10)
+            set_distance(0.10, 0.8)
         elif key.char == "4":
-            set_distance(0.15)
+            set_distance(0.12, 1.0)
         elif key.char == "5":
-            set_distance(0.20)
-        elif key.char == "6":
-            set_distance(0.25)
-    
+            set_distance(0.15, 1.2)
+
     # Add more key bindings as needed to control other axes or rotation
 
 def teleop_loop():
+    global dis, duration
     # Main loop for teleoperation
     while not rospy.is_shutdown():
-        rospy.loginfo("inside the while loop")
+        # rospy.loginfo("inside the while loop")
+        rospy.loginfo(f"{dis}, {duration}")
         # Update joint velocities based on the current desired_twist
         ik_solver_pos.CartToJnt(current_joint_positions, desired_frame, desired_joint_positions)
         
@@ -206,8 +207,9 @@ def teleop_loop():
     
 def run():
     global ik_solver_pos, desired_joint_positions, joint_names, number_of_joints, fk_solver, arm_pub, gripper_client, desired_frame, current_gripper_position, current_joint_positions, current_head_position, head_client
-    global dis
+    global dis, duration
     dis = 0.01
+    duration = 0.5
     
     # Load the robot model from parameter server
     robot_urdf = URDF.from_parameter_server()

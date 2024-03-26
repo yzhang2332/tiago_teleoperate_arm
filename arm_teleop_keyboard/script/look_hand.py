@@ -57,8 +57,10 @@ class LookAtMyHand():
         while not rospy.is_shutdown():
 
             ps = PointStamped()
-            ps.header.stamp = self.tf_l.getLatestCommonTime("/base_link", "/arm_7_link")
-            ps.header.frame_id = "/arm_7_link"
+            # ps.header.stamp = self.tf_l.getLatestCommonTime("/base_link", "/arm_7_link")
+            ps.header.stamp = self.tf_l.getLatestCommonTime("/base_link", "/gripper_link")
+            # ps.header.frame_id = "/arm_7_link"
+            ps.header.frame_id = "/gripper_link"
             transform_ok = False
             while not transform_ok and not rospy.is_shutdown():
                 try:
@@ -67,7 +69,8 @@ class LookAtMyHand():
                 except tf.ExtrapolationException as e:
                     rospy.logwarn("Exception on transforming point... trying again \n(" + str(e) + ")")
                     rospy.sleep(0.01)
-                    ps.header.stamp = self.tf_l.getLatestCommonTime("/base_link", "/arm_7_link")
+                    # ps.header.stamp = self.tf_l.getLatestCommonTime("/base_link", "/arm_7_link")
+                    ps.header.stamp = self.tf_l.getLatestCommonTime("/base_link", "/gripper_link")
             phag.goal.target.point = arm7link_ps.point
             rospy.loginfo("Sending: " + str(phag))
             self.pub_head_topic.publish(phag)
