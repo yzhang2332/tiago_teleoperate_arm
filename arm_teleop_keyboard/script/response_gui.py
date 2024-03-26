@@ -14,7 +14,7 @@ def button_clicked(button_text, tts_client):
     # Send the goal and wait
     tts_client.send_goal_and_wait(goal)
     #####
-    
+
     rospy.loginfo(f"{button_text} button clicked!")
 
 def create_buttons_intro(master, words, tts_client):
@@ -81,7 +81,7 @@ def gui_main():
     five_label.pack(side=tk.TOP, anchor='nw')
 
     # Define the words for the buttons in both sessions
-    intro_session_words = ["Hey, Mate! How are you? I’m so exciting to work with you. \nSo, what are we going to do?", "Alright, how can I help you first?", "We did a great job. Now what else are we going to do?", "I’m sorry, that’s too much detail to remember. \nLet’s get hands on the work, then you can fill me in when it’s need."]
+    intro_session_words = ["Hey, Mate! How are you? I’m so excited to work with you. \nSo, what are we going to do?", "Alright, how can I help you first?", "We did a great job. Now what else are we going to do?", "I’m sorry, that’s too much detail to remember. \nLet’s get hands on the work, then you can fill me in when it’s need."]
     one_session_words = ["Sure.", "Yes, I can.", "I will work on that."]
     two_session_words = ["Yes, I'm able to do that.", "Yes, I will do it if you want."]
     three_session_words = ["I'm happy to hear that.", "It's good to know."]
