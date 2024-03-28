@@ -7,21 +7,11 @@ from kdl_parser_py.urdf import treeFromUrdfModel
 from PyKDL import ChainFkSolverPos_recursive, ChainIkSolverPos_LMA, Frame, Vector, Rotation, JntArray
 from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-from pynput.keyboard import Key, Listener
+from pynput.keyboard import Key, Listener, KeyCode
 import actionlib
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
 from controller_manager_msgs.srv import SwitchController
 
-
-
-# def switch_controllers():
-#     rospy.wait_for_service('/controller_manager/switch_controller')
-#     try:
-#         switch_controller = rospy.ServiceProxy('/controller_manager/switch_controller', SwitchController)
-#         resp = switch_controller(start_controllers=['arm_controller'], stop_controllers=[], strictness=0)
-#         return resp.ok # Check if the service call was successful
-#     except rospy.ServiceException as e:
-#         print("Service call failed: %s" % e)
 
 # Subscriber callback for updating current joint positions
 def joint_state_callback(msg):
@@ -39,6 +29,34 @@ def joint_state_callback(msg):
         current_head_position[1] = msg.position[head_2_index]
     except Exception as e:
         rospy.logerr(f"Error in joint_state_callback: {e}") 
+
+def move_arm(joint_angles, t):
+        # Define the goal
+        goal = FollowJointTrajectoryGoal()
+        trajectory = JointTrajectory()
+
+        # Specify the joint names for arm and torso
+        trajectory.joint_names = [
+            'arm_1_joint', 'arm_2_joint', 'arm_3_joint', 'arm_4_joint', 
+            'arm_5_joint', 'arm_6_joint', 'arm_7_joint'
+        ]
+
+        # Define the joint target positions for arm and torso
+        point = JointTrajectoryPoint()
+        point.positions = joint_angles
+        point.time_from_start = rospy.Duration(t)
+        trajectory.points.append(point)
+
+        # Set the trajectory in the goal
+        goal.trajectory = trajectory
+
+        # Send the goal and wait for the result
+        rospy.loginfo("Sending goal for arm and torso movement...")
+        arm_client.send_goal(goal)
+        if arm_client.wait_for_result(rospy.Duration(t+1)):  # Increase timeout to ensure enough time for execution
+            rospy.loginfo("Arm completed successfully.")
+        else:
+            rospy.loginfo("Arm did not complete before the timeout.")
 
 
 def update_gripper_position(increment):
@@ -91,15 +109,13 @@ def update_head_position(pan_increment=0.0, tilt_increment=0.0):
     
 def apply_joint_positions(c, joint_position_dict):
     global duration
+
     # Create a JointTrajectory message
     traj_msg = JointTrajectory()
-    # traj_msg.header.stamp = rospy.Time.now()
-    traj_msg.joint_names = joint_names
 
-    # start_point = JointTrajectoryPoint()
-    # start_point.positions = [c[0], c[1], c[2], c[3], c[4], c[5], c[6]]
-    # start_point.time_from_start = rospy.Duration(0)
-    # traj_msg.points.append(start_point)
+    # traj_msg.header.stamp = rospy.Time.now()
+
+    traj_msg.joint_names = joint_names
     
     point = JointTrajectoryPoint()
 
@@ -109,7 +125,9 @@ def apply_joint_positions(c, joint_position_dict):
         all_position[i] = round(joint_position_dict[name], 4)
     # rospy.loginfo(all_position)
     point.positions = all_position
+
     point.time_from_start = rospy.Duration(duration)  # Adjust based on your requirements
+    
     traj_msg.points.append(point)
 
     # rospy.loginfo(traj_msg)
@@ -140,6 +158,7 @@ def set_distance(distance, dura):
 
 def on_press(key):
     global dis
+    # print(key)
     # Determine the change based on the key pressed
    
     if key == Key.up:
@@ -150,39 +169,40 @@ def on_press(key):
         update_desired_frame(delta_y=dis)  # Move left along the y-axis
     elif key == Key.right:
         update_desired_frame(delta_y=-dis)  # Move right along the y-axis
+    elif key == Key.alt_r:
+        joint_angles = [0.14, 1.02, -1.38, 1.66, 1.0, -1.33, 0.23]
+        move_arm(joint_angles, 4)
+    elif key.char == '4':
+        update_gripper_position(0.025)
+    elif key == KeyCode(65437):
+        update_gripper_position(-0.025)
     elif hasattr(key, 'char'):
-        if key.char == 'w':
+        if key.char == '6':
             update_desired_frame(delta_z=dis)  # Move up along the z-axis
-        elif key.char == 's':
+        elif key.char == '3':
             update_desired_frame(delta_z=-dis)  # Move down along the z-axis
-        elif key.char == 'z':
-            update_gripper_position(0.025)
-        elif key.char == 'c':
-            update_gripper_position(-0.025)
-        elif key.char == 'q':
-            # Rotate arm_7_joint clockwise
+        elif key.char == '*':
             update_desired_frame(delta_yaw=dis*10)
-        elif key.char == 'e':
-            # Rotate arm_7_joint counter-clockwise
+        elif key.char == '-':
             update_desired_frame(delta_yaw=-dis*10)  # Adjust this value as needed
-        elif key.char == 't':
+        elif key.char == '/':
             update_head_position(tilt_increment=0.2)
-        elif key.char == 'g':
+        elif key.char == '8':
             update_head_position(tilt_increment=-0.2)
-        elif key.char == 'f':
+        elif key.char == '7':
             update_head_position(pan_increment=0.2)
-        elif key.char == 'h':
+        elif key.char == '9':
             update_head_position(pan_increment=-0.2)
         elif key.char == '1':
             set_distance(0.01, 0.5)
         elif key.char == "2":
             set_distance(0.05, 0.8)
-        elif key.char == "3":
-            set_distance(0.10, 0.8)
-        elif key.char == "4":
-            set_distance(0.12, 1.0)
-        elif key.char == "5":
-            set_distance(0.15, 1.2)
+        # elif key.char == "3":
+        #     set_distance(0.10, 0.8)
+        # elif key.char == "4":
+        #     set_distance(0.12, 1.0)
+        # elif key.char == "5":
+        #     set_distance(0.15, 1.2)
 
     # Add more key bindings as needed to control other axes or rotation
 
@@ -206,7 +226,7 @@ def teleop_loop():
         rospy.sleep(0.5)  # Adjust the loop rate as needed
     
 def run():
-    global ik_solver_pos, desired_joint_positions, joint_names, number_of_joints, fk_solver, arm_pub, gripper_client, desired_frame, current_gripper_position, current_joint_positions, current_head_position, head_client
+    global ik_solver_pos, desired_joint_positions, joint_names, number_of_joints, fk_solver, arm_pub, gripper_client, arm_client, desired_frame, current_gripper_position, current_joint_positions, current_head_position, head_client
     global dis, duration
     dis = 0.01
     duration = 0.5
@@ -281,6 +301,10 @@ def run():
     head_client = actionlib.SimpleActionClient('/head_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
     head_client.wait_for_server()
 
+    arm_client = actionlib.SimpleActionClient('/arm_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
+    arm_client.wait_for_server()
+    rospy.loginfo("arm server connected.")
+
     # Subscribe to the current joint state
     rospy.Subscriber('/joint_states', JointState, joint_state_callback)
     rospy.loginfo("gripper server connected.")
@@ -302,11 +326,6 @@ def run():
     try:
         
         teleop_loop()
-        # if switch_controllers():
-        #     rospy.loginfo("Successfully switched controllers.")
-        #     teleop_loop()
-        # else:
-        #     rospy.loginfo("Failed to switch controllers")
         
     except rospy.ROSInterruptException:
         pass

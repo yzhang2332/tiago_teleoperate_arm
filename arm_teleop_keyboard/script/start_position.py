@@ -28,11 +28,13 @@ def sort_assemb_start():
     rospy.sleep(1.0)
 
     adjust_height(0.4)
+    joint_angles = [0.2, -1.33, -0.78, 1.92, -1.57, 1.37 , 0.0]
+    move_arm(joint_angles,2)
 
-    right_joint_angles = [0.07, 0.06, 0.11, 0.04, 1.62, -0.14, 0.00]
-    move_arm(right_joint_angles, 6)
+    # right_joint_angles = [0.07, 0.06, 0.11, 0.04, 1.62, -0.14, 0.00]
+    # move_arm(right_joint_angles, 6)
 
-    up_joint_angles = [0.14, 0.34, -1.38, 1.84, 0.32, -1.33, 0.23]
+    up_joint_angles = [0.14, 1.02, -1.38, 1.66, 1.0, -1.33, 0.23]
     move_arm(up_joint_angles, 6)
 
     rospy.loginfo("finish gesture")
