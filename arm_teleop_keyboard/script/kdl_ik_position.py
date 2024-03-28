@@ -31,6 +31,8 @@ def joint_state_callback(msg):
         rospy.logerr(f"Error in joint_state_callback: {e}") 
 
 def move_arm(joint_angles, t):
+        global doing_action, desired_frame
+        doing_action = True
         # Define the goal
         goal = FollowJointTrajectoryGoal()
         trajectory = JointTrajectory()
@@ -57,6 +59,9 @@ def move_arm(joint_angles, t):
             rospy.loginfo("Arm completed successfully.")
         else:
             rospy.loginfo("Arm did not complete before the timeout.")
+        desired_frame = get_current_end_effector_pose()
+        doing_action = False
+
 
 
 def update_gripper_position(increment):
@@ -108,7 +113,7 @@ def update_head_position(pan_increment=0.0, tilt_increment=0.0):
     
     
 def apply_joint_positions(c, joint_position_dict):
-    global duration
+    global duration, doing_action
 
     # Create a JointTrajectory message
     traj_msg = JointTrajectory()
@@ -133,7 +138,8 @@ def apply_joint_positions(c, joint_position_dict):
     # rospy.loginfo(traj_msg)
     
     # Publish the message
-    arm_pub.publish(traj_msg)
+    if doing_action == False:
+        arm_pub.publish(traj_msg)  
     # time.sleep(duration)
 
 # Function to get the current pose of the end-effector
@@ -170,6 +176,7 @@ def on_press(key):
     elif key == Key.right:
         update_desired_frame(delta_y=-dis)  # Move right along the y-axis
     elif key == Key.alt_r:
+        rospy.loginfo("Reset!")
         joint_angles = [0.14, 1.02, -1.38, 1.66, 1.0, -1.33, 0.23]
         move_arm(joint_angles, 4)
     elif key.char == '4':
@@ -227,7 +234,8 @@ def teleop_loop():
     
 def run():
     global ik_solver_pos, desired_joint_positions, joint_names, number_of_joints, fk_solver, arm_pub, gripper_client, arm_client, desired_frame, current_gripper_position, current_joint_positions, current_head_position, head_client
-    global dis, duration
+    global dis, duration, doing_action
+    doing_action=False
     dis = 0.01
     duration = 0.5
     

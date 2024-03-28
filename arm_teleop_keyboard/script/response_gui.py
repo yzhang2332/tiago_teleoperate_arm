@@ -8,12 +8,12 @@ def button_clicked(button_text, tts_client):
     rospy.loginfo("Inside the tts function!!!")
     
     ######
-    # # Create a goal to say our sentence
-    # goal = TtsGoal()
-    # goal.rawtext.text = button_text
-    # goal.rawtext.lang_id = "en_GB"
-    # # Send the goal and wait
-    # tts_client.send_goal_and_wait(goal)
+    # Create a goal to say our sentence
+    goal = TtsGoal()
+    goal.rawtext.text = button_text
+    goal.rawtext.lang_id = "en_GB"
+    # Send the goal and wait
+    tts_client.send_goal_and_wait(goal)
     #####
 
     rospy.loginfo(f"{button_text} button clicked!")
@@ -73,10 +73,10 @@ def gui_main():
     root.title("Voice Response GUI")
     
     ######
-    # tts_client = actionlib.SimpleActionClient('/tts', TtsAction)
-    # tts_client.wait_for_server()
-    # rospy.loginfo("Tts server connected.")
-    tts_client = False  
+    tts_client = actionlib.SimpleActionClient('/tts', TtsAction)
+    tts_client.wait_for_server()
+    rospy.loginfo("Tts server connected.")
+    # tts_client = False  
     ######
     
                                                                                     
@@ -158,5 +158,5 @@ def gui_main():
     root.mainloop()
 
 if __name__ == "__main__":
-    # rospy.init_node("gui")
+    rospy.init_node("gui")
     gui_main()
