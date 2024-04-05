@@ -9,6 +9,7 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Quaternion
+from arm_teleop_keyboard.msg import PoseObj
 import tf_conversions
 
 def rotationVectorToEulerAngles(rvec):
@@ -48,7 +49,8 @@ class ArucoDetector:
         self.aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_250)
         self.parameters = cv2.aruco.DetectorParameters()
 
-        self.aruco_pub = rospy.Publisher("/aruco_pose", PoseStamped, queue_size=1)
+        # self.aruco_pub = rospy.Publisher("/aruco_pose", PoseStamped, queue_size=1)
+        self.aruco_pub = rospy.Publisher("/aruco_pose", PoseObj, queue_size=1)
         self.aruco_published = False
 
         rospy.on_shutdown(self.shutdown_hook)
@@ -68,7 +70,8 @@ class ArucoDetector:
                 pose_msg = PoseStamped()
                 # pose_msg.header.frame_id = "camera_link"  # Change this to your camera frame
                 pose_msg.header.stamp = rospy.Time.now()
-                pose_msg.header.frame_id = f"xtion_optical_frame_{ids[i][0]}"
+                # pose_msg.header.frame_id = f"xtion_optical_frame_{ids[i][0]}"
+                pose_msg.header.frame_id = "xtion_optical_frame"
                 pose_msg.pose.position.x = tvecs[i][0][0]
                 pose_msg.pose.position.y = tvecs[i][0][1]
                 pose_msg.pose.position.z = tvecs[i][0][2]
@@ -77,7 +80,13 @@ class ArucoDetector:
                 quaternion = tf_conversions.transformations.quaternion_from_euler(math.radians(euler_angles[0]), math.radians(euler_angles[1]), math.radians(euler_angles[2]))
                 pose_msg.pose.orientation = Quaternion(*quaternion)
 
-                self.aruco_pub.publish(pose_msg)
+                object_pose = PoseObj()
+                object_pose.id = ids[i][0]
+                object_pose.pose = pose_msg
+
+                # self.aruco_pub.publish(pose_msg)
+                self.aruco_pub.publish(object_pose)
+                
                 print("Published aruco pose")
 
                 cv2.drawFrameAxes(frame, cameraMatrix, distCoeffs, rvecs[i], tvecs[i], 0.03)

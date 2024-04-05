@@ -6,6 +6,7 @@ from geometry_msgs.msg import PoseStamped
 import tf2_ros
 from geometry_msgs.msg import TransformStamped
 import tf_conversions
+from arm_teleop_keyboard.msg import PoseObj
 
 class CoordinateTranslator:
 
@@ -16,8 +17,10 @@ class CoordinateTranslator:
         # self.listener = tf2_ros.TransformListener(self.tf_buffer)
         self.listener = tf.TransformListener()
 
-        self.aruco_sub = rospy.Subscriber("/aruco_pose", PoseStamped, self.aruco_callback)
-        self.aruco_pose_pub = rospy.Publisher("/aruco_pose_tf", PoseStamped, queue_size=1)
+        # self.aruco_sub = rospy.Subscriber("/aruco_pose", PoseStamped, self.aruco_callback)
+        self.aruco_sub = rospy.Subscriber("/aruco_pose", PoseObj, self.aruco_callback)
+        # self.aruco_pose_pub = rospy.Publisher("/aruco_pose_tf", PoseStamped, queue_size=1)
+        self.aruco_pose_pub = rospy.Publisher("/aruco_pose_tf", PoseObj, queue_size=1)
 
         rospy.sleep(1)  # Wait for the listener to get ready
 
@@ -36,9 +39,9 @@ class CoordinateTranslator:
         static_transform_stamped.header.stamp = rospy.Time.now()
         static_transform_stamped.header.frame_id = '/xtion_optical_frame'
         static_transform_stamped.child_frame_id = '/aruco_marker_frame'
-        static_transform_stamped.transform.translation = msg.pose.position
+        static_transform_stamped.transform.translation = msg.pose.pose.position
         
-        static_transform_stamped.transform.rotation = msg.pose.orientation
+        static_transform_stamped.transform.rotation = msg.pose.pose.orientation
 
         # Send the transformation
         static_broadcaster.sendTransform(static_transform_stamped)
@@ -46,14 +49,14 @@ class CoordinateTranslator:
         # rospy.loginfo("Static transform published!")
 
 
-    def aruco_callback(self, msg: PoseStamped):
+    def aruco_callback(self, msg: PoseObj):
         self.publish_static_transformation(msg)
         # self.get_transformation(msg)
         # self.aruco_pose_pub.publish(self.transformed_pose)
 
         trans, rot = self.get_transformation()  # Assuming get_transformation is adjusted to return translation and rotation
-        transformed_pose = self.apply_transformation(msg, trans, rot)
-        self.aruco_pose_pub.publish(transformed_pose)
+        object_pose = self.apply_transformation(msg, trans, rot)
+        self.aruco_pose_pub.publish(object_pose)
 
 
     # def get_transformation(self, msg):
@@ -78,14 +81,14 @@ class CoordinateTranslator:
             rospy.logerr("Error obtaining transformation: %s", e)
             return None, None
     
-    def apply_transformation(self, pose, trans, rot):
+    def apply_transformation(self, msg, trans, rot):
         # Here, we'd manually construct a new pose based on the transformation data
         # This is a placeholder to indicate where you would apply the transformation
         # For actual implementation, you'd need to use TF2's do_transform_pose or manually apply the transformation
-        marker_id = str(pose.header.frame_id)
+        marker_id = msg.id
         transformed_pose = PoseStamped()
-        transformed_pose.header = pose.header
-        transformed_pose.header.frame_id = f"torso_lift_link_{marker_id[-1]}"
+        transformed_pose.header = msg.pose.header
+        transformed_pose.header.frame_id = "torso_lift_link"
         # transformed_pose.pose.position.x = trans.x + pose.pose.position.x
         # transformed_pose.pose.position.y = trans.y + pose.pose.position.y
         # transformed_pose.pose.position.z = trans.z + pose.pose.position.z
@@ -96,7 +99,11 @@ class CoordinateTranslator:
         transformed_pose.pose.orientation.y = rot[1]
         transformed_pose.pose.orientation.z = rot[2]
         transformed_pose.pose.orientation.w = rot[3]
-        return transformed_pose
+
+        object_pose = PoseObj()
+        object_pose.id = marker_id
+        object_pose.pose = transformed_pose
+        return object_pose
 
     def run(self):
 
