@@ -21,6 +21,7 @@ signal.signal(signal.SIGINT, signal_handler)
 
 # Ensure the directory exists
 directory = "/home/pal/rosbags/"
+directory = "/home/yanzhang/pal/rosbags/"
 if not os.path.exists(directory):
     os.makedirs(directory)
 
@@ -36,13 +37,19 @@ bag_file_name = f"{directory}record_{current_time}.bag"
 throttle_rgb_command = "rosrun topic_tools throttle messages /xtion/rgb/image_raw 4.0 /xtion/rgb/image_raw_throttled"
 throttle_rgb_process = subprocess.Popen(throttle_rgb_command, shell=True, preexec_fn=os.setsid)
 
+
+throttle_dep_command = "rosrun topic_tools throttle messages /xtion/depth_registered/image_raw 4.0 /xtion/depth/image_raw_throttled"
+
+# throttle_dep_command = "rosrun topic_tools throttle messages /xtion/depth/image_raw 4.0 /xtion/depth/image_raw_throttled"
+throttle_dep_process = subprocess.Popen(throttle_dep_command, shell=True, preexec_fn=os.setsid)
+
 # Start audio recording
 audio_command = "rosrun audio_capture audio_capture _device:=hw:1,0"
 audio_recording = subprocess.Popen(audio_command, shell=True, preexec_fn=os.setsid)
 
 
 # Adjusted topics with throttled camera topic
-topics = "/xtion/rgb/image_raw_throttled /joint_states /audio"
+topics = "/xtion/rgb/image_raw_throttled /xtion/depth/image_raw_throttled /joint_states /audio /aruco_pose_tf /arm_cartesian"
 
 # Define the command to start recording all topics to the named bag file
 command = f"rosbag record --lz4 {topics} -O {bag_file_name}"

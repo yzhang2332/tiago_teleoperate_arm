@@ -11,6 +11,8 @@ from pynput.keyboard import Key, Listener, KeyCode
 import actionlib
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
 from controller_manager_msgs.srv import SwitchController
+from geometry_msgs.msg import PoseStamped, Point, Quaternion
+from tf.transformations import quaternion_from_euler
 
 
 # Subscriber callback for updating current joint positions
@@ -156,6 +158,8 @@ def update_desired_frame(delta_x=0, delta_y=0, delta_z=0, delta_roll=0, delta_pi
     roll, pitch, yaw = rotation.GetRPY()
     rotation = Rotation.RPY(roll + delta_roll, pitch + delta_pitch, yaw + delta_yaw)
     desired_frame = Frame(rotation, position)
+    print(position)
+    
 
 def set_distance(distance, dura):
     global dis, duration
@@ -213,6 +217,22 @@ def on_press(key):
 
     # Add more key bindings as needed to control other axes or rotation
 
+def publish_frame():
+    # Create a PoseStamped message
+    position, rotation = desired_frame.p, desired_frame.M
+    position = Vector(position.x(), position.y(), position.z())
+    # Adjust orientation by converting current rotation to RPY, updating it, and converting back
+    roll, pitch, yaw = rotation.GetRPY()
+    q = quaternion_from_euler(roll, pitch, yaw)
+    pose_msg = PoseStamped()
+    pose_msg.header.stamp = rospy.Time.now()
+    pose_msg.header.frame_id = "torso_lift_link"  # Set the reference frame
+    pose_msg.pose.position = Point(position.x(), position.y(), position.z())
+    pose_msg.pose.orientation = Quaternion(*q)
+    # Publish the PoseStamped message
+    frame_pub.publish(pose_msg)
+    rospy.loginfo("publish desired frame")
+
 def teleop_loop():
     global dis, duration
     # Main loop for teleoperation
@@ -230,10 +250,12 @@ def teleop_loop():
         # Apply the calculated joint positions to the robot
         apply_joint_positions(current_joint_positions, joint_positions_dict)
 
-        rospy.sleep(0.5)  # Adjust the loop rate as needed
+        publish_frame()       
+
+        rospy.sleep(0.1)  # Adjust the loop rate as needed
     
 def run():
-    global ik_solver_pos, desired_joint_positions, joint_names, number_of_joints, fk_solver, arm_pub, gripper_client, arm_client, desired_frame, current_gripper_position, current_joint_positions, current_head_position, head_client
+    global ik_solver_pos, desired_joint_positions, joint_names, number_of_joints, fk_solver, arm_pub, frame_pub, gripper_client, arm_client, desired_frame, current_gripper_position, current_joint_positions, current_head_position, head_client
     global dis, duration, doing_action
     doing_action=False
     dis = 0.01
@@ -302,6 +324,7 @@ def run():
 
     # Publisher for controlling the robot's arm
     arm_pub = rospy.Publisher('/arm_controller/safe_command', JointTrajectory, queue_size=1)
+    frame_pub = rospy.Publisher('/arm_cartesian', PoseStamped, queue_size=1)
 
     gripper_client = actionlib.SimpleActionClient('/parallel_gripper_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
     gripper_client.wait_for_server()

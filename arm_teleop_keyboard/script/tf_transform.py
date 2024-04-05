@@ -95,6 +95,7 @@ class CoordinateTranslator:
         transformed_pose.pose.orientation.x = rot[0]
         transformed_pose.pose.orientation.y = rot[1]
         transformed_pose.pose.orientation.z = rot[2]
+        transformed_pose.pose.orientation.w = rot[3]
         return transformed_pose
 
     def run(self):
