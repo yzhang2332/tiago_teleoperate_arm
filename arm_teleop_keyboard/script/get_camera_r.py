@@ -171,6 +171,7 @@
 import rospy
 import cv2
 import cv2.aruco as aruco
+# from cv2 import aruco
 import numpy as np
 import math
 from sensor_msgs.msg import Image
@@ -200,17 +201,17 @@ class ArucoDetector:
         self.bridge = CvBridge()
         # Change the topic to match the camera topic from your robot
         self.image_sub = rospy.Subscriber("/xtion/rgb/image_raw", Image, self.image_callback)
-        self.cameraMatrix = np.array([[504.33469, 0.0, 317.57],
-                                       [0.0, 505.35, 234.248],
+        self.cameraMatrix = np.array([[515.5234, 0.0, 318.3147],
+                                       [0.0, 515.98793, 225.1747],
                                        [0.0, 0.0, 1.0]], dtype=float)
 
-        self.cameraMatrix = np.array([[522.19253988, 0.0, 320],
-                                      [0.0, 522.19253988, 240],
-                                      [0.0, 0.0, 1.0]], dtype=float)
+        # self.cameraMatrix = np.array([[522.19253988, 0.0, 320],
+        #                               [0.0, 522.19253988, 240],
+        #                               [0.0, 0.0, 1.0]], dtype=float)
         
         # self.distCoeffs = np.zeros((4, 1))  # Assuming no lens distortion
-        self.distCoeffs = np.array([[-0.05378933,  0.10715212, -0.00133245, -0.00592152, -0.10959971]], dtype=float)
-        self.distCoeffs = np.array([[0,  0, 0, 0, 0]], dtype=float)
+        self.distCoeffs = np.array([[0.05305353,  -0.26613098, -0.00728184, -0.00124051, 0.24547245]], dtype=float)
+        # self.distCoeffs = np.array([[0,  0, 0, 0, 0]], dtype=float)
 
         self.aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_250)
         self.parameters = cv2.aruco.DetectorParameters()
@@ -255,7 +256,6 @@ class ArucoDetector:
 
                 cv2.drawFrameAxes(frame, cameraMatrix, distCoeffs, rvecs[i], tvecs[i], 0.03)
         return frame
-
 
 
     def image_callback(self, msg):

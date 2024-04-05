@@ -2,8 +2,8 @@
 
 import rospy
 import cv2
-from cv2 import aruco
-# import cv2.aruco as aruco
+# from cv2 import aruco
+import cv2.aruco as aruco
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 
@@ -19,8 +19,10 @@ def image_callback(msg):
     gray = cv2.cvtColor(cv2_img, cv2.COLOR_BGR2GRAY)
 
     # Initialize the detector parameters using default values
-    aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_1000)
-    parameters = aruco.DetectorParameters_create()
+    # aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_1000)
+    # parameters = aruco.DetectorParameters_create()
+    aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_250)
+    parameters = cv2.aruco.DetectorParameters()
 
     # Detect the markers in the image
     corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)

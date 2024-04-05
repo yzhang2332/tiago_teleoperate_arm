@@ -274,6 +274,7 @@ def run():
     # base_link = "base_link"
     base_link = "torso_lift_link"
     end_effector_link = "gripper_link"
+    end_effector_link = "gripper_grasping_frame_Z"
     chain = kdl_tree.getChain(base_link, end_effector_link)
 
     # Replace velocity IK solver with position IK solver
