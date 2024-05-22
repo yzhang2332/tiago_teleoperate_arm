@@ -3,6 +3,16 @@ import rospy
 import actionlib
 from pal_interaction_msgs.msg import TtsAction, TtsGoal
 import random
+import signal 
+
+# Global flag to indicate shutdown
+shutdown_flag = False
+
+def signal_handler(sig, frame):
+    global shutdown_flag
+    print('Shutting down...')
+    shutdown_flag = True  # Set the flag to indicate shutdown
+
 
 def button_clicked(button_text, tts_client):
     rospy.loginfo("Inside the tts function!!!")
@@ -67,6 +77,7 @@ def create_buttons_multi_row(master, words, tts_client):
     
 
 def gui_main():
+    global root
 
     # Initialize the main window
     root = tk.Tk()
@@ -138,8 +149,19 @@ def gui_main():
     validate_command = root.register(validate_input)
 
     # Entry widget for typing the message
-    message_entry = tk.Entry(text_input_frame, font=("Helvetica", 12), width=50, validate="key", validatecommand=(validate_command, '%S'))
-    message_entry.pack(side=tk.TOP, padx=5, pady=5)                 
+    message_entry = tk.Entry(text_input_frame, font=("Helvetica", 12), width=50)
+    message_entry.pack(side=tk.TOP, padx=5, pady=5)   
+
+    def check_shutdown():
+        """Check if the shutdown flag has been set and close the application if so."""
+        if shutdown_flag:
+            root.destroy()  # Close the Tkinter window
+            rospy.signal_shutdown('Ctrl+C pressed')  # Shutdown ROS node
+        else:
+            root.after(100, check_shutdown)  # Re-check the flag after 100ms
+
+    # Call check_shutdown periodically
+    root.after(100, check_shutdown)              
 
     # Create the main container
     main_container = tk.PanedWindow(root, orient='vertical')
@@ -166,5 +188,7 @@ def gui_main():
     root.mainloop()
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal_handler)  # Register the signal handler for SIGINT
+
     rospy.init_node("gui")
     gui_main()
