@@ -64,7 +64,43 @@ def move_arm(joint_angles, t):
         desired_frame = get_current_end_effector_pose()
         doing_action = False
 
+def rotate_gripper(distance_r, t_r):
+    global doing_action, desired_frame
+    doing_action = True
 
+    print("current_joint_positions", current_joint_positions)
+    # Define the goal
+    goal = FollowJointTrajectoryGoal()
+    trajectory = JointTrajectory()
+
+    # Specify the joint names for arm and torso
+    trajectory.joint_names = [
+        'arm_1_joint', 'arm_2_joint', 'arm_3_joint', 'arm_4_joint', 
+        'arm_5_joint', 'arm_6_joint', 'arm_7_joint'
+    ]
+
+    # Define the joint target positions for arm and torso
+    point = JointTrajectoryPoint()
+    
+    joint_angles = current_joint_positions
+    joint_angles[6] = joint_angles[6] + distance_r
+    print("joint_angles", joint_angles)
+    point.positions = joint_angles
+    point.time_from_start = rospy.Duration(t_r)
+    trajectory.points.append(point)
+
+    # Set the trajectory in the goal
+    goal.trajectory = trajectory
+
+    # Send the goal and wait for the result
+    rospy.loginfo("Sending goal for arm and torso movement...")
+    # arm_client.send_goal(goal)
+    if arm_client.wait_for_result(rospy.Duration(t_r+1)):  # Increase timeout to ensure enough time for execution
+        rospy.loginfo("Arm completed successfully.")
+    else:
+        rospy.loginfo("Arm did not complete before the timeout.")
+    desired_frame = get_current_end_effector_pose()
+    doing_action = False
 
 def update_gripper_position(increment):
     global current_gripper_position
@@ -179,10 +215,10 @@ def on_press(key):
         update_desired_frame(delta_y=dis)  # Move left along the y-axis
     elif key == Key.right:
         update_desired_frame(delta_y=-dis)  # Move right along the y-axis
-    elif key == Key.alt_r:
-        rospy.loginfo("Reset!")
-        joint_angles = [0.14, 1.02, -1.38, 1.66, 1.0, -1.33, 0.23]
-        move_arm(joint_angles, 4)
+    # elif key == Key.alt_r:
+    #     rospy.loginfo("Reset!")
+    #     joint_angles = [0.14, 1.02, -1.38, 1.66, 1.0, -1.33, 0.23]
+    #     move_arm(joint_angles, 4)
     elif key.char == '4':
         update_gripper_position(0.025)
     elif key == KeyCode(65437):
@@ -193,9 +229,11 @@ def on_press(key):
         elif key.char == '3':
             update_desired_frame(delta_z=-dis)  # Move down along the z-axis
         elif key.char == '*':
-            update_desired_frame(delta_yaw=dis*10)
+            # update_desired_frame(delta_yaw=dis*10) 
+            rotate_gripper(0.2, 1)#rotate
         elif key.char == '-':
-            update_desired_frame(delta_yaw=-dis*10)  # Adjust this value as needed
+            # update_desired_frame(delta_yaw=-dis*10)
+            rotate_gripper(-0.2, 1)#rotate
         elif key.char == '/':
             update_head_position(tilt_increment=0.2)
         elif key.char == '8':
@@ -208,6 +246,10 @@ def on_press(key):
             set_distance(0.01, 0.5)
         elif key.char == "2":
             set_distance(0.05, 0.8)
+        elif key.char == "0":
+            rospy.loginfo("Reset!")
+            joint_angles = [0.1, 0.4, -1.41, 1.71, 0.43, -1.37, 1.7]
+            move_arm(joint_angles, 4)
         # elif key.char == "3":
         #     set_distance(0.10, 0.8)
         # elif key.char == "4":
@@ -231,7 +273,7 @@ def publish_frame():
     pose_msg.pose.orientation = Quaternion(*q)
     # Publish the PoseStamped message
     frame_pub.publish(pose_msg)
-    rospy.loginfo("publish desired frame")
+    # rospy.loginfo("publish desired frame")
 
 def teleop_loop():
     global dis, duration

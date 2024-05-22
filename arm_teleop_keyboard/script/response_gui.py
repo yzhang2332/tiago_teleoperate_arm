@@ -153,7 +153,8 @@ def gui_main():
             root.after(100, check_shutdown)  # Re-check the flag after 100ms
 
     # Call check_shutdown periodically
-    root.after(100, check_shutdown)              
+    root.after(100, check_shutdown)
+                  
 
     # Create the main container
     main_container = tk.PanedWindow(root, orient='vertical')
