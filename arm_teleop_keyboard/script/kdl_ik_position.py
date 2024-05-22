@@ -33,42 +33,8 @@ def joint_state_callback(msg):
         rospy.logerr(f"Error in joint_state_callback: {e}") 
 
 def move_arm(joint_angles, t):
-        global doing_action, desired_frame
-        doing_action = True
-        # Define the goal
-        goal = FollowJointTrajectoryGoal()
-        trajectory = JointTrajectory()
-
-        # Specify the joint names for arm and torso
-        trajectory.joint_names = [
-            'arm_1_joint', 'arm_2_joint', 'arm_3_joint', 'arm_4_joint', 
-            'arm_5_joint', 'arm_6_joint', 'arm_7_joint'
-        ]
-
-        # Define the joint target positions for arm and torso
-        point = JointTrajectoryPoint()
-        point.positions = joint_angles
-        point.time_from_start = rospy.Duration(t)
-        trajectory.points.append(point)
-
-        # Set the trajectory in the goal
-        goal.trajectory = trajectory
-
-        # Send the goal and wait for the result
-        rospy.loginfo("Sending goal for arm and torso movement...")
-        arm_client.send_goal(goal)
-        if arm_client.wait_for_result(rospy.Duration(t+1)):  # Increase timeout to ensure enough time for execution
-            rospy.loginfo("Arm completed successfully.")
-        else:
-            rospy.loginfo("Arm did not complete before the timeout.")
-        desired_frame = get_current_end_effector_pose()
-        doing_action = False
-
-def rotate_gripper(distance_r, t_r):
     global doing_action, desired_frame
     doing_action = True
-
-    print("current_joint_positions", current_joint_positions)
     # Define the goal
     goal = FollowJointTrajectoryGoal()
     trajectory = JointTrajectory()
@@ -81,12 +47,8 @@ def rotate_gripper(distance_r, t_r):
 
     # Define the joint target positions for arm and torso
     point = JointTrajectoryPoint()
-    
-    joint_angles = current_joint_positions
-    joint_angles[6] = joint_angles[6] + distance_r
-    print("joint_angles", joint_angles)
     point.positions = joint_angles
-    point.time_from_start = rospy.Duration(t_r)
+    point.time_from_start = rospy.Duration(t)
     trajectory.points.append(point)
 
     # Set the trajectory in the goal
@@ -94,8 +56,42 @@ def rotate_gripper(distance_r, t_r):
 
     # Send the goal and wait for the result
     rospy.loginfo("Sending goal for arm and torso movement...")
-    # arm_client.send_goal(goal)
-    if arm_client.wait_for_result(rospy.Duration(t_r+1)):  # Increase timeout to ensure enough time for execution
+    arm_client.send_goal(goal)
+    if arm_client.wait_for_result(rospy.Duration(t+1)):  # Increase timeout to ensure enough time for execution
+        rospy.loginfo("Arm completed successfully.")
+    else:
+        rospy.loginfo("Arm did not complete before the timeout.")
+    desired_frame = get_current_end_effector_pose()
+    doing_action = False
+
+def rotate_gripper(distance_r, t):
+    global doing_action, desired_frame
+    doing_action = True
+
+    # Define the goal
+    goal = FollowJointTrajectoryGoal()
+    trajectory = JointTrajectory()
+
+    # Specify the joint names for arm and torso
+    trajectory.joint_names = [
+        'arm_1_joint', 'arm_2_joint', 'arm_3_joint', 'arm_4_joint', 
+        'arm_5_joint', 'arm_6_joint', 'arm_7_joint'
+    ]
+
+    # Define the joint target positions for arm and torso
+    point = JointTrajectoryPoint()
+    joint_angles = [current_joint_positions[i] for i in range(current_joint_positions.rows())]
+    joint_angles[-1] += distance_r
+    point.positions = joint_angles
+    point.time_from_start = rospy.Duration(t)
+    trajectory.points.append(point)
+
+    # Set the trajectory in the goal
+    goal.trajectory = trajectory
+    # Send the goal and wait for the result
+    rospy.loginfo("Sending goal for arm and torso movement...")
+    arm_client.send_goal(goal)
+    if arm_client.wait_for_result(rospy.Duration(t+1)):  # Increase timeout to ensure enough time for execution
         rospy.loginfo("Arm completed successfully.")
     else:
         rospy.loginfo("Arm did not complete before the timeout.")
@@ -230,10 +226,10 @@ def on_press(key):
             update_desired_frame(delta_z=-dis)  # Move down along the z-axis
         elif key.char == '*':
             # update_desired_frame(delta_yaw=dis*10) 
-            rotate_gripper(0.2, 1)#rotate
+            rotate_gripper(-0.1, 0.5)#rotate
         elif key.char == '-':
             # update_desired_frame(delta_yaw=-dis*10)
-            rotate_gripper(-0.2, 1)#rotate
+            rotate_gripper(0.1, 0.5)#rotate
         elif key.char == '/':
             update_head_position(tilt_increment=0.2)
         elif key.char == '8':
