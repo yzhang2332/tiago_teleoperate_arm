@@ -149,7 +149,7 @@ def gui_main():
     validate_command = root.register(validate_input)
 
     # Entry widget for typing the message
-    message_entry = tk.Entry(text_input_frame, font=("Helvetica", 12), width=50)
+    message_entry = tk.Entry(text_input_frame, font=("Helvetica", 12), width=50, validate="key", validatecommand=(validate_command, '%S'))
     message_entry.pack(side=tk.TOP, padx=5, pady=5)   
 
     def check_shutdown():
