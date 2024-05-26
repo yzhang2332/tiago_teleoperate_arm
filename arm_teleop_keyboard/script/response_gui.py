@@ -77,7 +77,7 @@ def create_buttons_multi_row(master, words, tts_client):
     
 
 def gui_main():
-    global root
+    global root, message_entry
 
     # Initialize the main window
     root = tk.Tk()
@@ -141,16 +141,24 @@ def gui_main():
     five_session_words = ["I need help.", "I can't reach that.", "What should I do next?", "Thank you.", "You're welcome.", "Yes.", "No.", "Done.", "Sorry, I can't."]
 
     # Validation function to allow only specific characters
-    def validate_input(char):
+    # def validate_input(char):
+    def validate_input(event):
         allowed_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,.?! "
-        return char in allowed_characters
+        # return char in allowed_characters
+        if event.char not in allowed_characters:
+            return "break"
 
     # Register the validation function
-    validate_command = root.register(validate_input)
+    # validate_command = root.register(validate_input)
 
     # Entry widget for typing the message
-    message_entry = tk.Entry(text_input_frame, font=("Helvetica", 12), width=50, validate="key", validatecommand=(validate_command, '%S'))
-    message_entry.pack(side=tk.TOP, padx=5, pady=5)   
+    # message_entry = tk.Entry(text_input_frame, font=("Helvetica", 12), width=50, validate="key", validatecommand=(validate_command, '%S'))
+    # message_entry.pack(side=tk.TOP, padx=5, pady=5)
+    
+    message_entry = tk.Entry(text_input_frame, font=("Helvetica", 12), width=50)
+    message_entry.pack(side=tk.TOP, padx=5, pady=5)
+
+    message_entry.bind('<KeyPress>', validate_input)
 
     def check_shutdown():
         """Check if the shutdown flag has been set and close the application if so."""
@@ -178,12 +186,14 @@ def gui_main():
     def handle_text_input(event):
         typed_text = message_entry.get()  # Get the text from the entry widget
         print(typed_text)
-        button_clicked(typed_text, tts_client)  # Use the same function to print/log the message
-        entry_widget.delete(0, tk.END)
+        button_clicked(typed_text, tts_client)
+        message_entry.delete(0, tk.END)
+        print("Text input cleared")
 
-    entry_widget=message_entry
+
     # Bind the Enter key to the handle_text_input function
     message_entry.bind('<Return>', handle_text_input)
+    print("4")
 
     # Start the GUI event loop
     root.mainloop()
