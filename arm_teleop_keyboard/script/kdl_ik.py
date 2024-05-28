@@ -14,6 +14,14 @@ from controller_manager_msgs.srv import SwitchController
 from geometry_msgs.msg import PoseStamped, Point, Quaternion
 from tf.transformations import quaternion_from_euler
 import numpy as np
+import signal
+import sys
+
+
+def signal_handler(sig, frame):
+    rospy.loginfo("shutting down...")
+    rospy.signal_shutdown("Ctrl+C pressed")
+    sys.exit(0)
 
 
 # Subscriber callback for updating current joint positions
@@ -449,7 +457,13 @@ def run():
 if __name__ == "__main__":
     # Initialize ROS node
     rospy.init_node('tiago_arm_teleop_position')
+    signal.signal(signal.SIGINT, signal_handler)
+    while not rospy.is_shutdown():
+        try:
+            run()
+        except rospy.ROSInterruptException:
+            pass
+    # run()
 
-    run()
 
     

@@ -5,7 +5,7 @@ import cv2
 import cv2.aruco as aruco
 import numpy as np
 import math
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Quaternion
@@ -33,7 +33,7 @@ class ArucoDetector:
         rospy.init_node(self.node_name, anonymous=True)
         self.bridge = CvBridge()
         # Change the topic to match the camera topic from your robot
-        self.image_sub = rospy.Subscriber("/xtion/rgb/image_raw", Image, self.image_callback)
+        self.image_sub = rospy.Subscriber("/xtion/rgb/image_raw/compressed", CompressedImage, self.image_callback)
         self.cameraMatrix = np.array([[515.5234, 0.0, 318.3147],
                                        [0.0, 515.98793, 225.1747],
                                        [0.0, 0.0, 1.0]], dtype=float)
@@ -94,7 +94,9 @@ class ArucoDetector:
 
     def image_callback(self, msg):
         try:
-            cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+            np_arr = np.fromstring(msg.data, np.uint8)
+            # cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+            cv_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
         except CvBridgeError as e:
             rospy.logerr(e)
             return
