@@ -141,12 +141,12 @@ def gui_main():
     five_session_words = ["I need help.", "I can't reach that.", "What should I do next?", "Thank you.", "You're welcome.", "Yes.", "No.", "Done.", "Sorry, I can't."]
 
     # Validation function to allow only specific characters
-    # def validate_input(char):
-    def validate_input(event):
-        allowed_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,.?! "
-        # return char in allowed_characters
-        if event.char not in allowed_characters:
-            return "break"
+    # def validate_input33(char):
+    # def validate_input(event):
+    #     allowed_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,.?! "
+    #     # return char in allowed_characters
+    #     if event.char not in allowed_characters:
+    #         return "break"
 
     # Register the validation function
     # validate_command = root.register(validate_input)
@@ -158,7 +158,7 @@ def gui_main():
     message_entry = tk.Entry(text_input_frame, font=("Helvetica", 12), width=50)
     message_entry.pack(side=tk.TOP, padx=5, pady=5)
 
-    message_entry.bind('<KeyPress>', validate_input)
+    # message_entry.bind('<KeyPress>', validate_input)
 
     def check_shutdown():
         """Check if the shutdown flag has been set and close the application if so."""
