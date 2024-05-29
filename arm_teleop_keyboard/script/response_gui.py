@@ -134,9 +134,9 @@ def gui_main():
 
     # Define the words for the buttons in both sessions
     intro_session_words = ["Hey, Mate! How are you? I’m so excited to work with you.", "How can I help you?", "We did a great job. Now what else are we going to do?", "I’m sorry, that’s too much detail to remember. \nLet’s get hands on the work, then you can fill me in when it’s need."]
-    one_session_words = ["Sure.", "Yes, I can.", "Yes, I will work on that.", "Yes, of course."]
+    one_session_words = ["Sure.", "Okay.", "Got it.", "Working on that.", "Yes.", "Of course."]
     two_session_words = ["I have the ability to do that.", "Of course, I will do it if you want.", "I'm able to do that"]
-    three_session_words = ["Well noted.", "It's good to know.", "Thank you for this information"]
+    three_session_words = ["Well noted.", "It's good to know.", "Thank you for sharing this information"]
     four_session_words = ["I'm sorry I don't understand.", "Sorry I missed that. Can you say it again?"]
     five_session_words = ["I need help.", "I can't reach that.", "What should I do next?", "Thank you.", "You're welcome.", "Yes.", "No.", "Done.", "Sorry, I can't.", "There is no enough space for me to grasp that.", "Just one second, I need to reset my arm.", "They're already in the correct order."]
 
