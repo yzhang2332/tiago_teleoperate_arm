@@ -7,6 +7,8 @@ import tf2_ros
 from geometry_msgs.msg import TransformStamped
 import tf_conversions
 from arm_teleop_keyboard.msg import PoseObj
+import signal
+import sys
 
 class CoordinateTranslator:
 
@@ -109,7 +111,13 @@ class CoordinateTranslator:
 
         rospy.spin()
 
+def signal_handler(sig, frame):
+    print("Shutting down the ROS node...")
+    rospy.signal_shutdown("Shutting down")
+    sys.exit(0)
+
 def main():
+    signal.signal(signal.SIGINT, signal_handler)
     translator = CoordinateTranslator()
     translator.run()
 
