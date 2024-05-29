@@ -9,10 +9,12 @@ def signal_handler(sig, frame):
     print('Stopping recording and throttling...')
     os.killpg(os.getpgid(process.pid), signal.SIGINT)
     os.killpg(os.getpgid(throttle_rgb_process.pid), signal.SIGINT)
+    os.killpg(os.getpgid(throttle_dep_process.pid), signal.SIGINT)
     os.killpg(os.getpgid(audio_recording.pid), signal.SIGINT)
     process.wait()
     throttle_rgb_process.wait()
     audio_recording.wait()
+    throttle_dep_process.wait()
     print('Recording and throttling stopped.')
     exit(0)
 
