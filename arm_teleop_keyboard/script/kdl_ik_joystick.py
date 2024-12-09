@@ -12,6 +12,7 @@ import actionlib
 from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
 from controller_manager_msgs.srv import SwitchController
 from geometry_msgs.msg import PoseStamped, Point, Quaternion
+from std_msgs.msg import String
 from tf.transformations import quaternion_from_euler
 import numpy as np
 import signal
@@ -246,69 +247,80 @@ def set_distance(distance, dura):
 
 
 def on_press(key):
-    global dis
-    print(key)
-    # Determine the change based on the key pressed
-    if key == Key.shift or key == Key.enter or \
-        key==Key.num_lock or key == Key.delete:
-        return
-    elif key == Key.up:
-        update_desired_frame(delta_x=dis)  # Move up along the z-axis
-    elif key == Key.down:
-        update_desired_frame(delta_x=-dis)  # Move down along the z-axis
-    elif key == Key.left:
-        update_desired_frame(delta_y=dis)  # Move left along the y-axis
-    elif key == Key.right:
-        update_desired_frame(delta_y=-dis)  # Move right along the y-axis
-    elif key == Key.alt_r:
-        rospy.loginfo("Workplace!!")
-        joint_angles = [0.46, 0.7, -1.25, 1.94, 0.68, -1.07, 2.07]
-        move_arm(joint_angles, 4)
-    elif key == Key.alt_l:
-        rospy.loginfo("Manufacturing reset!!")
-        joint_angles = [0.44, 0.72, -1.29, 1.92, 0.72, -1.12, -1.84]
-        move_arm(joint_angles, 4)
-    elif key.char == '4':
-        update_gripper_position(0.025)
-    elif key == KeyCode(65437):
-        update_gripper_position(-0.025)
-    elif hasattr(key, 'char'):
-        if key.char == '6':
-            update_desired_frame(delta_z=dis)  # Move up along the z-axis
-        elif key.char == '3':
-            update_desired_frame(delta_z=-dis)  # Move down along the z-axis
-        elif key.char == '*':
-            # update_desired_frame(delta_yaw=dis*10) 
-            rotate_gripper(-0.1, 0.5)#rotate
-        elif key.char == '-':
-            # update_desired_frame(delta_yaw=-dis*10)
-            rotate_gripper(0.1, 0.5)#rotate
-        elif key.char == '/':
-            update_head_position(tilt_increment=0.2)
-        elif key.char == '8':
-            update_head_position(tilt_increment=-0.2)
-        elif key.char == '7':
-            update_head_position(pan_increment=0.2)
-        elif key.char == '9':
-            update_head_position(pan_increment=-0.2)
-        elif key.char == '1':
-            set_distance(0.01, 0.5)
-        elif key.char == "2":
-            set_distance(0.05, 0.8)
-        elif key.char == "0":
-            rospy.loginfo("Reset!")
-            joint_angles = [0.1, 0.4, -1.41, 1.71, 0.43, -1.37, 1.7]
-            move_arm(joint_angles, 4)
-        # elif key.char == "3":
-        #     set_distance(0.10, 0.8)
-        # elif key.char == "4":
-        #     set_distance(0.12, 1.0)
-        # elif key.char == "5":
-        #     set_distance(0.15, 1.2)
-        else:
-            return
-    else:
-        return
+    #global dis
+    keys = key.data.split("|")
+    #print(keys)
+    if "Right Stick" in keys:
+        index = keys.index("Right Stick") + 1
+        x, y = map(float,keys[index].split(","))
+        #print(x, y)
+
+        if(x > 0):
+            print("X left")
+        elif(x < 0):
+            print("X right")
+        
+        if(y > 0):
+            print("Y up")
+        elif(y < 0):
+            print("Y down")
+        
+
+    #     #update_desired_frame(delta_x=dis)  # Move up along the z-axis
+    # elif "KEY_A" in keys:
+    #     print("KEY_LB")
+    #     #update_desired_frame(delta_x=-dis)  # Move down along the z-axis
+    # elif "KEY_B" in keys:
+    #     print("KEY_B")
+    #     #update_desired_frame(delta_y=dis)  # Move left along the y-axis
+    # elif "KEY_LT" in keys:
+    #     print("KEY_LT")
+    #     #update_desired_frame(delta_y=-dis)  # Move right along the y-axis
+    # elif "KEY_RB" in keys:
+    #     print("KEY_RB")
+    #     #rospy.loginfo("Workplace!!")
+    #     #joint_angles = [0.46, 0.7, -1.25, 1.94, 0.68, -1.07, 2.07]
+    #     #move_arm(joint_angles, 4)
+    # elif "KEY_RT" in keys:
+    #     print("KEY_RT")
+    #     rospy.loginfo("Manufacturing reset!!")
+    #     joint_angles = [0.44, 0.72, -1.29, 1.92, 0.72, -1.12, -1.84]
+    #     move_arm(joint_angles, 4)
+    # elif key.char == '4':
+    #     update_gripper_position(0.025)
+    # elif key == KeyCode(65437):
+    #     update_gripper_position(-0.025)
+    # elif hasattr(key, 'char'):
+    #     if key.char == '6':
+    #         update_desired_frame(delta_z=dis)  # Move up along the z-axis
+    #     elif key.char == '3':
+    #         update_desired_frame(delta_z=-dis)  # Move down along the z-axis
+    #     elif key.char == '*':
+    #         # update_desired_frame(delta_yaw=dis*10) 
+    #         rotate_gripper(-0.1, 0.5)#rotate
+    #     elif key.char == '-':
+    #         # update_desired_frame(delta_yaw=-dis*10)
+    #         rotate_gripper(0.1, 0.5)#rotate
+    #     elif key.char == '/':
+    #         update_head_position(tilt_increment=0.2)
+    #     elif key.char == '8':
+    #         update_head_position(tilt_increment=-0.2)
+    #     elif key.char == '7':
+    #         update_head_position(pan_increment=0.2)
+    #     elif key.char == '9':
+    #         update_head_position(pan_increment=-0.2)
+    #     elif key.char == '1':
+    #         set_distance(0.01, 0.5)
+    #     elif key.char == "2":
+    #         set_distance(0.05, 0.8)
+    #     elif key.char == "0":
+    #         rospy.loginfo("Reset!")
+    #         joint_angles = [0.1, 0.4, -1.41, 1.71, 0.43, -1.37, 1.7]
+    #         move_arm(joint_angles, 4)
+    #     else:
+    #         return
+    # else:
+    #     return
 
     # Add more key bindings as needed to control other axes or rotation
 
@@ -350,124 +362,126 @@ def teleop_loop():
         rospy.sleep(0.1)  # Adjust the loop rate as needed
     
 def run():
-    global ik_solver_pos, desired_joint_positions, joint_names, number_of_joints, fk_solver, arm_pub, frame_pub, gripper_client, arm_client, desired_frame, current_gripper_position, current_joint_positions, current_head_position, head_client
-    global dis, duration, doing_action
-    doing_action=False
-    dis = 0.01
-    duration = 0.5
+    # global ik_solver_pos, desired_joint_positions, joint_names, number_of_joints, fk_solver, arm_pub, frame_pub, gripper_client, arm_client, desired_frame, current_gripper_position, current_joint_positions, current_head_position, head_client
+    # global dis, duration, doing_action
+    # doing_action=False
+    # dis = 0.01
+    # duration = 0.5
     
-    # Load the robot model from parameter server
-    robot_urdf = URDF.from_parameter_server()
+    # # Load the robot model from parameter server
+    # robot_urdf = URDF.from_parameter_server()
 
-    # Generate a KDL tree from the URDF model
-    success, kdl_tree = treeFromUrdfModel(robot_urdf)
-    if not success:
-        rospy.logerr("Failed to extract KDL tree from URDF robot model.")
-        exit(1)
+    # # Generate a KDL tree from the URDF model
+    # success, kdl_tree = treeFromUrdfModel(robot_urdf)
+    # if not success:
+    #     rospy.logerr("Failed to extract KDL tree from URDF robot model.")
+    #     exit(1)
 
-    # Specify the chain: from base link to end-effector link
-    # base_link = "base_link"
-    base_link = "torso_lift_link"
-    end_effector_link = "gripper_link"
-    end_effector_link = "gripper_grasping_frame_Z"
-    chain = kdl_tree.getChain(base_link, end_effector_link)
+    # # Specify the chain: from base link to end-effector link
+    # # base_link = "base_link"
+    # base_link = "torso_lift_link"
+    # end_effector_link = "gripper_link"
+    # end_effector_link = "gripper_grasping_frame_Z"
+    # chain = kdl_tree.getChain(base_link, end_effector_link)
 
-    # Replace velocity IK solver with position IK solver
-    ik_solver_pos = ChainIkSolverPos_LMA(chain)
+    # # Replace velocity IK solver with position IK solver
+    # ik_solver_pos = ChainIkSolverPos_LMA(chain)
 
 
-    # Initialize the joint array with the number of joints
-    number_of_joints = chain.getNrOfJoints()
-    desired_joint_positions = JntArray(number_of_joints)
-    current_joint_positions = JntArray(number_of_joints)
-    # rospy.loginfo(number_of_joints)
+    # # Initialize the joint array with the number of joints
+    # number_of_joints = chain.getNrOfJoints()
+    # desired_joint_positions = JntArray(number_of_joints)
+    # current_joint_positions = JntArray(number_of_joints)
+    # # rospy.loginfo(number_of_joints)
 
-    '''
-    print("Number of Joints in the chain:", chain.getNrOfJoints())
-    print("Number of Segments in the chain:", chain.getNrOfSegments())
+    # '''
+    # print("Number of Joints in the chain:", chain.getNrOfJoints())
+    # print("Number of Segments in the chain:", chain.getNrOfSegments())
 
-    # Loop through each segment to print its details
-    for i in range(chain.getNrOfSegments()):
-        segment = chain.getSegment(i)
-        print("Segment", i, ":")
-        print("  Name:", segment.getName())
-        print("  Joint Name:", segment.getJoint().getName())
-        print("  Joint Type:", segment.getJoint().getTypeName())
-        print("  Frame to Tip:", segment.getFrameToTip())
-        print("  Joint Origin:", segment.getJoint().JointOrigin())
-        print("  Joint Axis:", segment.getJoint().JointAxis())
+    # # Loop through each segment to print its details
+    # for i in range(chain.getNrOfSegments()):
+    #     segment = chain.getSegment(i)
+    #     print("Segment", i, ":")
+    #     print("  Name:", segment.getName())
+    #     print("  Joint Name:", segment.getJoint().getName())
+    #     print("  Joint Type:", segment.getJoint().getTypeName())
+    #     print("  Frame to Tip:", segment.getFrameToTip())
+    #     print("  Joint Origin:", segment.getJoint().JointOrigin())
+    #     print("  Joint Axis:", segment.getJoint().JointAxis())
 
-    # If you want to verify the entire structure, you could also print the names of all segments and joints
-    print("\nAll segment names in the chain:")
-    for i in range(chain.getNrOfSegments()):
-        print(chain.getSegment(i).getName())
+    # # If you want to verify the entire structure, you could also print the names of all segments and joints
+    # print("\nAll segment names in the chain:")
+    # for i in range(chain.getNrOfSegments()):
+    #     print(chain.getSegment(i).getName())
 
-    print("\nChecking if the base link and end-effector link are correct:")
-    print("Base Link:", base_link)
-    print("End-effector Link:", end_effector_link)
-    '''
+    # print("\nChecking if the base link and end-effector link are correct:")
+    # print("Base Link:", base_link)
+    # print("End-effector Link:", end_effector_link)
+    # '''
 
-    # Initialize Forward Kinematics solver
-    fk_solver = ChainFkSolverPos_recursive(chain)
+    # # Initialize Forward Kinematics solver
+    # fk_solver = ChainFkSolverPos_recursive(chain)
 
-    # List of joint names for TIAGO's arm - Update this list to match your configuration
-    joint_names = ["arm_1_joint", "arm_2_joint", "arm_3_joint", 
-                "arm_4_joint", "arm_5_joint", "arm_6_joint", "arm_7_joint"
-                ]
+    # # List of joint names for TIAGO's arm - Update this list to match your configuration
+    # joint_names = ["arm_1_joint", "arm_2_joint", "arm_3_joint", 
+    #             "arm_4_joint", "arm_5_joint", "arm_6_joint", "arm_7_joint"
+    #             ]
 
-    current_gripper_position = [0, 0]
-    current_head_position = [0, 0]
+    # current_gripper_position = [0, 0]
+    # current_head_position = [0, 0]
 
-    # Publisher for controlling the robot's arm
-    arm_pub = rospy.Publisher('/arm_controller/safe_command', JointTrajectory, queue_size=1)
-    frame_pub = rospy.Publisher('/arm_cartesian', PoseStamped, queue_size=1)
+    # # Publisher for controlling the robot's arm
+    # arm_pub = rospy.Publisher('/arm_controller/safe_command', JointTrajectory, queue_size=1)
+    # frame_pub = rospy.Publisher('/arm_cartesian', PoseStamped, queue_size=1)
 
-    gripper_client = actionlib.SimpleActionClient('/parallel_gripper_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
-    gripper_client.wait_for_server()
+    # gripper_client = actionlib.SimpleActionClient('/parallel_gripper_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
+    # gripper_client.wait_for_server()
 
-    head_client = actionlib.SimpleActionClient('/head_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
-    head_client.wait_for_server()
+    # head_client = actionlib.SimpleActionClient('/head_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
+    # head_client.wait_for_server()
 
-    arm_client = actionlib.SimpleActionClient('/arm_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
-    arm_client.wait_for_server()
-    rospy.loginfo("arm server connected.")
+    # arm_client = actionlib.SimpleActionClient('/arm_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
+    # arm_client.wait_for_server()
+    # rospy.loginfo("arm server connected.")
 
-    # Subscribe to the current joint state
-    rospy.Subscriber('/joint_states', JointState, joint_state_callback)
-    rospy.loginfo("gripper server connected.")
+    # # Subscribe to the current joint state
+    # rospy.Subscriber('/joint_states', JointState, joint_state_callback)
+    # rospy.loginfo("gripper server connected.")
 
-    # wait to get first values
-    rospy.wait_for_message("joint_states", JointState)
-    rospy.sleep(2.0)
-    rospy.loginfo("Get the joint states message")
+    # # wait to get first values
+    # rospy.wait_for_message("joint_states", JointState)
+    # rospy.sleep(2.0)
+    # rospy.loginfo("Get the joint states message")
 
-    # Initialize desired_frame with the current end-effector pose at the start of the script or inside a suitable initialization function
-    desired_frame = get_current_end_effector_pose()
+    # # Initialize desired_frame with the current end-effector pose at the start of the script or inside a suitable initialization function
+    # desired_frame = get_current_end_effector_pose()
     # print("desired frame", desired_frame)SwitchController
 
     # Start listening to keyboard events
-    listener = Listener(on_press=on_press)
-    listener.start()
+    # listener = Listener(on_press=on_press)
+    # listener.start()
+    rospy.Subscriber('/joystick_keys', String, on_press)
     rospy.loginfo("Listening to key press")
 
-    try:
+    # try:
         
-        teleop_loop()
+    #     teleop_loop()
         
-    except rospy.ROSInterruptException:
-        pass
-    finally:
-        listener.stop()
+    # except rospy.ROSInterruptException:
+    #     pass
 
 
 
 if __name__ == "__main__":
     # Initialize ROS node
     rospy.init_node('tiago_arm_teleop_position')
+    rate = rospy.Rate(50)
     signal.signal(signal.SIGINT, signal_handler)
+
     while not rospy.is_shutdown():
         try:
             run()
+            rate.sleep()
         except rospy.ROSInterruptException:
             pass
     # run()

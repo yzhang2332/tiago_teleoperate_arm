@@ -22,8 +22,8 @@ def signal_handler(sig, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 # Ensure the directory exists
-directory = "/home/pal/rosbags/"
-# directory = "/home/yanzhang/pal/rosbags/"
+# directory = "/home/pal/rosbags/"
+directory = "/home/yanzhang/pal/rosbags/"
 if not os.path.exists(directory):
     os.makedirs(directory)
 
