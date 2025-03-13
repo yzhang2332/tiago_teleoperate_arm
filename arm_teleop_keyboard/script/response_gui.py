@@ -133,7 +133,7 @@ def gui_main():
     text_input_label.pack(side=tk.TOP, anchor='nw')
 
     # Define the words for the buttons in both sessions
-    intro_session_words = ["Hey, Mate! How are you? I’m so excited to work with you.", "How can I help you?", "We did a great job. Now what else are we going to do?", "I’m sorry, that’s too much detail to remember. \nLet’s get hands on the work, then you can fill me in when it’s need."]
+    intro_session_words = ["Hi! How are you? I’m so excited to work with you.", "How can I help you?", "We did a great job. Now what else are we going to do?", "I’m sorry, that’s too much detail to remember. \nLet’s get hands on the work, then you can fill me in when it’s need."]
     one_session_words = ["Sure.", "Okay.", "Got it.", "Working on that.", "Yes.", "Of course."]
     two_session_words = ["I have the ability to do that.", "Of course, I will do it if you want.", "I'm able to do that"]
     three_session_words = ["Well noted.", "It's good to know.", "Thank you for sharing this information"]
