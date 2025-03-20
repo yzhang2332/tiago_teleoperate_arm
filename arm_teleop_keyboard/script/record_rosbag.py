@@ -26,6 +26,7 @@ signal.signal(signal.SIGINT, signal_handler)
 directory = "/home/yanzhang/pal/rosbags/"
 if not os.path.exists(directory):
     os.makedirs(directory)
+    
 
 # Format the current date and time as a string
 current_time = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")

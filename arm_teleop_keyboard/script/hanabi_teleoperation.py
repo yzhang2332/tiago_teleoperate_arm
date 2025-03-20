@@ -257,14 +257,14 @@ def on_press(key):
         update_desired_frame(delta_y=dis)  # Move left along the y-axis
     elif key == Key.right:
         update_desired_frame(delta_y=-dis)  # Move right along the y-axis
-    elif key == Key.alt_r:
-        rospy.loginfo("Workplace!!")
-        joint_angles = [0.6288893479007194, 0.5573586512018899, -1.080420348040774, 1.2330983604899601, 0.6671281246748627, -1.2751857028523155, -1.3846061511475216]
-        move_arm(joint_angles, 4)
-    elif key == Key.alt_l:
-        rospy.loginfo("Manufacturing reset!!")
-        joint_angles = [1.2965940220021783, 0.947669900032214, -0.755902407897498, 1.7498113028575375, 0.9982123602409906, -0.908175187301305, -0.9204546205012487]
-        move_arm(joint_angles, 4)
+    # elif key == Key.alt_r:
+    #     rospy.loginfo("Workplace!!")
+    #     joint_angles = [0.6288893479007194, 0.5573586512018899, -1.080420348040774, 1.2330983604899601, 0.6671281246748627, -1.2751857028523155, -1.3846061511475216]
+    #     move_arm(joint_angles, 4)
+    # elif key == Key.alt_l:
+    #     rospy.loginfo("Manufacturing reset!!")
+    #     joint_angles = [1.2965940220021783, 0.947669900032214, -0.755902407897498, 1.7498113028575375, 0.9982123602409906, -0.908175187301305, -0.9204546205012487]
+    #     move_arm(joint_angles, 4)
     elif key.char == '4':
         update_gripper_position(0.03)
     elif key == KeyCode(65437):
@@ -292,10 +292,55 @@ def on_press(key):
             set_distance(0.01, 0.5)
         elif key.char == "2":
             set_distance(0.05, 0.8)
-        elif key.char == "0":
-            rospy.loginfo("Reset!")
-            joint_angles = [0.176, 0.505, -1.485, 1.71, 0.537, -1.375, -1.274]
+        elif key.char == "c":
+            rospy.loginfo("play card")
+            joint_angles = [0.6288893479007194, 0.5573586512018899, -1.080420348040774, 1.2330983604899601, 0.6671281246748627, -1.2751857028523155, -1.3846061511475216]
             move_arm(joint_angles, 4)
+        elif key.char == "z":
+            rospy.loginfo("discard")
+            joint_angles = [1.2965940220021783, 0.947669900032214, -0.755902407897498, 1.7498113028575375, 0.9982123602409906, -0.908175187301305, -0.9204546205012487]
+            move_arm(joint_angles, 4)
+        elif key.char == "a":
+            rospy.loginfo("Row2Position1")
+            joint_angles = [0.5820716332556106, 0.6480334583012471, -1.524360276556321, 2.146948856739327, 0.5418307769058047, -1.1335536804428537, -0.5131808085954811]
+            move_arm(joint_angles, 4)
+        elif key.char == "s":
+            rospy.loginfo("Row2Position2")
+            joint_angles = [0.3356036708693184, 0.5451019821319547, -1.466344353624538, 2.009042154688368, 0.49106489797914676, -1.197406566476216, -0.8860975215779996]
+            move_arm(joint_angles, 4)        
+        elif key.char == "d":
+            rospy.loginfo("Row2Position3")
+            joint_angles = [0.1843511589424596, 0.4473400897881544, -1.4209225800124254, 1.7515600641516207, 0.47251632561896506, -1.296613268565246, -1.2461106382272513]
+            move_arm(joint_angles, 4)
+        elif key.char == "f":
+            rospy.loginfo("Row2Position4")
+            joint_angles = [0.260253535110218, 0.5772393059135743, -1.0102244560958138, 1.453595683657979, 0.7680818606967387, -1.145775507436473, -1.7003098186219368]
+            move_arm(joint_angles, 4)
+        elif key.char == "g":
+            rospy.loginfo("Row2Position5")
+            joint_angles = [0.34427077728297717, 0.3786321789443004, -0.9605534993393057, 0.8687884309006121, 0.7632020225428514, -1.391620049205961, -2.0534329891457874]
+            move_arm(joint_angles, 4)
+        elif key.char == "q":
+            rospy.loginfo("Row1Position1")
+            joint_angles = [0.7220338968276856, 0.5641082561965975, -1.4035116671283498, 1.8524359787997975, 0.523471173221286, -1.2154308433931365, -0.685625840942472]
+            move_arm(joint_angles, 4)
+        elif key.char == "w":
+            rospy.loginfo("Row1Position2")
+            joint_angles = [0.4784651965868474, 0.4941731444446149, -1.3934946397157497, 1.7831911675586372, 0.48925302185367153, -1.2496415842244504, -0.9654588074542586]
+            move_arm(joint_angles, 4)
+        elif key.char == "e":
+            rospy.loginfo("Row1Position3")
+            joint_angles = [0.3708243369326112, 0.392867709478593, -1.3638577377844423, 1.4877885689607142, 0.47303135789185063, -1.3568627813224843, -1.3359948856502375]
+            move_arm(joint_angles, 4)
+        elif key.char == "r":
+            rospy.loginfo("Row1Position4")
+            joint_angles = [0.45422797865130615, 0.5136702988725091, -0.971352867330838, 1.1204719971464512, 0.7982649750487243, -1.3125940900973003, -1.75216875165292]
+            move_arm(joint_angles, 4)
+        elif key.char == "t":
+            rospy.loginfo("Row1Position5")
+            joint_angles = [0.5186100062940067, 0.2818060272929482, -0.8810002004698645, 0.5369686453539708, 0.8088990946399591, -1.3936727677612029, -2.0744455648258895]
+            move_arm(joint_angles, 4)
+        
         # elif key.char == "3":
         #     set_distance(0.10, 0.8)
         # elif key.char == "4":
