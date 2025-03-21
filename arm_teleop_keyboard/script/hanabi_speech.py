@@ -200,7 +200,7 @@ def gui_main():
 
     root = tk.Tk()
     root.title("Voice Response GUI")
-    root.geometry("500x650")
+    root.geometry("500x420")
 
     position_frame = tk.Frame(root)
     verb_frame = tk.Frame(root)
