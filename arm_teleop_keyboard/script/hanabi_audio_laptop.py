@@ -16,8 +16,6 @@ try:
     import actionlib
     from std_msgs.msg import String
     from pal_interaction_msgs.msg import TtsAction, TtsGoal
-    import paramiko
-    import threading
     ROS_ENABLED = True
 except ImportError:
     print("ROS not detected. Running in GUI test mode.")
@@ -42,7 +40,7 @@ def signal_handler(sig, frame):
 def button_clicked(audio_file):
     """Publish the audio file name to ROS."""
     # versioned_file = audio_file.replace(".mp3", f"_v{voice_version}.mp3")
-    versioned_file = f"../hanabi_audios/{audio_file.replace('.mp3', f'_v{voice_version}.wav')}"
+    versioned_file = f"../Audio/{audio_file.replace('.mp3', f'_v{voice_version}.wav')}"
     if ROS_ENABLED and publisher:
         rospy.loginfo(f"Publishing message to /play_audio: {versioned_file}")
         publisher.publish(versioned_file)
@@ -192,7 +190,7 @@ def gui_main():
 
     root = tk.Tk()
     root.title("Voice Response GUI")
-    root.geometry("500x650")
+    root.geometry("400x650")
 
     position_frame = tk.Frame(root)
     verb_frame = tk.Frame(root)
@@ -224,15 +222,6 @@ def gui_main():
                               command=lambda: button_clicked("lower.mp3"))
         upper_btn.pack()
         lower_btn.pack()
-    # for i in range(5):
-    #     frame = tk.Frame(position_frame)
-    #     frame.pack(side=tk.LEFT, padx=5)
-    #     upper_btn = tk.Button(frame, text="U", font=("Helvetica", 10), width=2, height=1,
-    #                           command=lambda: button_clicked("upper.mp3"))
-    #     lower_btn = tk.Button(frame, text="L", font=("Helvetica", 10), width=2, height=1,
-    #                           command=lambda: button_clicked("lower.mp3"))
-    #     upper_btn.pack()
-    #     lower_btn.pack()
 
     # Verb section
     for text, audio in [("is", "is.mp3"), ("are", "are.mp3")]:
@@ -259,37 +248,6 @@ def gui_main():
 
     root.mainloop()
 
-def start_remote_script():
-    hostname = "tiago-196c"
-    port = 22
-    username = "pal"
-    password = "pal"  # Replace with actual password
-
-    try:
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(hostname, port=port, username=username, password=password)
-
-        command = "source /opt/ros/noetic/setup.bash && cd scripts && python3 Audio.py"
-        stdin, stdout, stderr = ssh.exec_command(command)
-
-        print("STDOUT:")
-        print(stdout.read().decode())
-
-        print("STDERR:")
-        print(stderr.read().decode())
-
-        ssh.close()
-    except Exception as e:
-        print(f"SSH connection failed: {e}")
-
-
 if __name__ == "__main__":
-    signal.signal(signal.SIGINT, signal_handler)
-
-    # Start the remote SSH process in a separate thread
-    ssh_thread = threading.Thread(target=start_remote_script)
-    ssh_thread.start()
-
-    # Run the GUI
+    signal.signal(signal.SIGINT, signal_handler)  # Register signal handler
     gui_main()
