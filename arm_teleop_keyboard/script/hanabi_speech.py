@@ -1,6 +1,7 @@
 import tkinter as tk
 import random
 import signal
+import sys
 #Installed to play audio without ROS
 # import pygame  
 
@@ -9,6 +10,7 @@ import signal
 
 voice_version = 1
 toggle_button = None
+root = None
 
 # Try importing ROS packages, but allow running without them
 try:
@@ -27,9 +29,15 @@ except ImportError:
 shutdown_flag = False
 
 def signal_handler(sig, frame):
-    global shutdown_flag
+    global shutdown_flag, root
     print('Shutting down...')
-    shutdown_flag = True  # Set the flag to indicate shutdown
+    shutdown_flag = True
+    if root:
+        root.quit()
+    if ROS_ENABLED:
+        rospy.signal_shutdown("Manual shutdown")
+    
+    # sys.exit(0)
 
 # def button_clicked(audio_file, publisher=None):
 #     """Simulated ROS publishing or local print."""
@@ -181,7 +189,7 @@ def toggle_voice():
 #     root.mainloop()
 
 def gui_main():
-    global publisher, tts_client, toggle_button
+    global publisher, tts_client, toggle_button, root
 
     if ROS_ENABLED:
         rospy.init_node("gui_ros_audio_publisher", anonymous=True)
@@ -257,6 +265,15 @@ def gui_main():
                         command=lambda i=i: button_clicked(f"number_{i}.mp3"))
         btn.pack(side=tk.LEFT, padx=5)
 
+    def check_shutdown():
+        """Check if the shutdown flag has been set and close the application if so."""
+        if shutdown_flag:
+            root.destroy()  # Close the Tkinter window
+            rospy.signal_shutdown('Ctrl+C pressed')  # Shutdown ROS node
+        else:
+            root.after(100, check_shutdown)
+    root.after(100, check_shutdown)
+
     root.mainloop()
 
 def start_remote_script():
@@ -288,7 +305,7 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
 
     # Start the remote SSH process in a separate thread
-    ssh_thread = threading.Thread(target=start_remote_script)
+    ssh_thread = threading.Thread(target=start_remote_script, daemon=True)
     ssh_thread.start()
 
     # Run the GUI
