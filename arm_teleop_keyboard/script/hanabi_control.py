@@ -183,53 +183,7 @@ def move_to_goal_position(goal_position, goal_orientation, duration):
     else:
         rospy.logerr("Failed to find an IK solution for the desired position.")
 
-def yaw_converter(yaw):
-    if yaw > pi/4 and yaw < 3*pi/4:
-        # print("loop_yaw: ", yaw)
-        return yaw
-    else:
-        if yaw > 3*pi/4:
-            yaw -= pi/2
-        if yaw < pi/4:
-            yaw += pi/2
-        return yaw_converter(yaw)
-    
-def read_csv(filename):
-    with open(filename, mode='r') as file:
-        csv_reader = csv.reader(file)
-        headers = next(csv_reader)
-        data = []
-        for row in csv_reader:
-        # for row in csv_reader:
-            data_row = [float(item) for item in row]
-            data.append(data_row)
-        return data
-    
-def minimum_rotation_radians(initial_angle, final_angles):
-    # Normalize the initial angle to be within the range [-pi, pi)
-    # print(f"initial_angle : {initial_angle}, final_angles: {final_angles}")
-    initial_angle = (initial_angle + pi) % (2 * pi) - pi
-    min_rotation = inf
-    best_direction = ''
-    # Iterate over each final angle
-    for final_angle in final_angles:
-        # Normalize the final angle
-        final_angle = (final_angle + pi) % (2 * pi) - pi
-        # Calculate clockwise and counterclockwise rotations
-        clockwise = (final_angle - initial_angle) % (2 * pi)
-        counterclockwise = (initial_angle - final_angle) % (2 * pi)
-        # Find the minimum rotation for this pair
-        if clockwise <= counterclockwise:
-            rotation = clockwise
-            direction = 'clockwise'
-        else:
-            rotation = counterclockwise
-            direction = 'counterclockwise'
-        # Update the smallest rotation found
-        if rotation < min_rotation:
-            min_rotation = rotation
-            best_direction = direction
-    return min_rotation, best_direction
+
 
 
 class GenerationFunction():
@@ -247,33 +201,6 @@ class GenerationFunction():
         except Exception as e:
             rospy.logerr(f"Failed to say Hi: {e}")
             return "Error trying to say Hi."
-
-
-def publish_end_effector_pose():
-    current_pose = get_current_end_effector_pose()
-    pose_msg = PoseStamped()
-    pose_msg.header.stamp = rospy.Time.now()
-    pose_msg.header.frame_id = "torso_lift_link"  # Adjust the frame_id as needed
-
-    # Position
-    pose_msg.pose.position.x = current_pose.p.x()
-    pose_msg.pose.position.y = current_pose.p.y()
-    pose_msg.pose.position.z = current_pose.p.z()
-
-    # Orientation
-    current_orientation = current_pose.M
-    roll, pitch, yaw = current_orientation.GetRPY()
-    quaternion = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
-    pose_msg.pose.orientation = Quaternion(*quaternion)
-
-    ee_pose_pub.publish(pose_msg)
-
-def publish_state_end_effector(message):
-    number_msg = Float32MultiArray()
-    # number_msg.data = [1.0, 2.0, 3.0, 4.0]
-    number_msg.data = message
-    State_pub.publish(number_msg)
-    # rospy.loginfo("Published number array")
 
 
 def move_arm(joint_angles, t):
@@ -337,9 +264,12 @@ def move_arm_with_interp(joint_angles_list, duration):
 
 
 def aruco_pose_callback(msg):
-    global Arco_markers_updated_array
+    global Arco_markers_updated_array_1, Arco_markers_updated_array_2
     if msg.name[0] == "1":
-        Arco_markers_updated_array = np.array([msg.name[0], msg.position[0],msg.position[1]], dtype=object)
+        Arco_markers_updated_array_1 = np.array([msg.name[0], msg.position[0],msg.position[1]], dtype=object)
+    elif msg.name[0] == "2":
+        Arco_markers_updated_array_2 = np.array([msg.name[0], msg.position[0],msg.position[1]], dtype=object)
+    
 
 
 def send_audio(text):
@@ -361,6 +291,24 @@ def image_callback(msg):
     if publish_images:
         filtered_pub.publish(msg)
         rospy.loginfo("Publishing image...")
+
+def PositionGiver(Cube_numberr):
+    if Cube_numberr==1:
+        X_pose = 0.58
+        Y_pose = -0.016
+    elif Cube_numberr == 2:
+        X_pose = 0.58
+        Y_pose = -0.12
+    elif Cube_numberr == 3:
+        X_pose = 0.58
+        Y_pose = -0.25
+    elif Cube_numberr == 4:
+        X_pose = 0.58
+        Y_pose = -0.35
+    elif Cube_numberr == 5:
+        X_pose = 0.58
+        Y_pose = -0.46
+    return X_pose, Y_pose
 
 
 
@@ -445,9 +393,9 @@ def run():
         Cube_number = int(sys.argv[1])
         movement = sys.argv[2]
         row = int(sys.argv[3])
-        print(row)
         State = sys.argv[4]
-        print(State)
+        if movement == "Move":
+            move_target = int(sys.argv[5])
 
     # object_number = System_input % 4
 
@@ -455,72 +403,129 @@ def run():
     #First row
     #First one 
 
-    if Cube_number==1:
-        X_pose = 0.58
-        Y_pose = -0.016
-    elif Cube_number == 2:
-        X_pose = 0.58
-        Y_pose = -0.12
-    elif Cube_number == 3:
-        X_pose = 0.58
-        Y_pose = -0.25
-    elif Cube_number == 4:
-        X_pose = 0.58
-        Y_pose = -0.35
-    elif Cube_number == 5:
-        X_pose = 0.58
-        Y_pose = -0.46
+   
+
+
+    X_pose, Y_pose = PositionGiver(Cube_number)
+
+    # if Cube_number==1:
+    #     X_pose = 0.58
+    #     Y_pose = -0.016
+    # elif Cube_number == 2:
+    #     X_pose = 0.58
+    #     Y_pose = -0.12
+    # elif Cube_number == 3:
+    #     X_pose = 0.58
+    #     Y_pose = -0.25
+    # elif Cube_number == 4:
+    #     X_pose = 0.58
+    #     Y_pose = -0.35
+    # elif Cube_number == 5:
+    #     X_pose = 0.58
+    #     Y_pose = -0.46
 
     
-    
-
-
-
+    #parameters
     X_forward = 0.07
     y_left = -0.05
-
-
     X_Play = 0.75
     Y_play = -0.2
-
     X_discard = 0.7
     Y_discard = 0.1
 
-
     if row == 2:
         X_pose = X_pose + X_forward 
-
-
-
 
 
     #Step 2 Openning Gripper
     update_gripper_position(0.09)
     rospy.sleep(0.7)
 
-    
-    # Step 1 Going upper of the object
-    goal_orientation = [0, 0, pi]  # Adjust as needed
-    goal_position = [X_pose, Y_pose, -0.20]  # Adjust as needed
-    move_to_goal_position(goal_position, goal_orientation, 4)
-    rospy.sleep(4)
+    if State == "Droped":
 
-    #Step 3 Going Down
-    Aruco_id = Arco_markers_updated_array[0]
-    X_aruco = Arco_markers_updated_array[2]
-    Y_aruco = Arco_markers_updated_array[1]
+        # Step 1 Going upper of the object
+        goal_orientation = [0, 0, pi]  # Adjust as needed
+        goal_position = [X_pose, Y_pose+0.015, -0.20]  # Adjust as needed
+        move_to_goal_position(goal_position, goal_orientation, 4)
+        rospy.sleep(5)
+
+        #Step 3 Going Down
+        Aruco_id = Arco_markers_updated_array_2[0]
+        X_aruco = Arco_markers_updated_array_2[2]
+        Y_aruco = Arco_markers_updated_array_2[1]
+
+        X_update = -(349-Y_aruco)*0.013/65
+        Y_update = (209-X_aruco)*0.011/82
+
+        Y_update = (209-X_aruco)*0.013/82
 
 
+        if Cube_number==5:
+            X_update = X_update + 0.025
 
-    print(X_aruco)
-    print(Y_aruco)
+        if row==2:
+            X_update = X_update + 0.023
+
+        goal_position = [X_pose+X_update, Y_pose+Y_update+0.02, -0.26]  # Adjust as needed
+        move_to_goal_position(goal_position, goal_orientation, 3)
+        rospy.sleep(3)
+
+        #Step 2 Openning Gripper
+        update_gripper_position(0.035)
+        rospy.sleep(0.7)
+
+        # Step 1 Going upper of the object
+        goal_orientation = [0, 0, pi]  # Adjust as needed
+        goal_position = [X_pose+X_update, Y_pose+Y_update, -0.22]  # Adjust as needed
+        move_to_goal_position(goal_position, goal_orientation, 4)
+        rospy.sleep(5)
+
+        # Step 1 Going upper of the object
+        goal_orientation = [0, 0, pi]  # Adjust as needed
+        goal_position = [X_pose+X_update, Y_pose+Y_update, -0.23]  # Adjust as needed
+        move_to_goal_position(goal_position, goal_orientation, 1)
+        rospy.sleep(1)
+
+        # goal_position = [X_pose+X_update, Y_pose+Y_update-0.005, -0.23]  # Adjust as needed
+        # move_to_goal_position(goal_position, goal_orientation, 0.5)
+        # rospy.sleep(0.5)
+
+        # goal_position = [X_pose+X_update, Y_pose+Y_update, -0.23]  # Adjust as needed
+        # move_to_goal_position(goal_position, goal_orientation, 0.5)
+        # rospy.sleep(0.5)
+
+        #Step 2 Openning Gripper
+        update_gripper_position(0.04)
+        rospy.sleep(0.7)
+
+    if State == "Normal":
+
+        # Step 1 Going upper of the object
+        goal_orientation = [0, 0, pi]  # Adjust as needed
+        goal_position = [X_pose, Y_pose, -0.20]  # Adjust as needed
+        move_to_goal_position(goal_position, goal_orientation, 4)
+        rospy.sleep(5)
+
+        #Step 3 Going Down
+        Aruco_id = Arco_markers_updated_array_1[0]
+        X_aruco = Arco_markers_updated_array_1[2]
+        Y_aruco = Arco_markers_updated_array_1[1]
 
 
-    X_update = -(349-Y_aruco)*0.01/65
-    if Cube_number==5:
-        X_update =X_update + 0.025
-        
-    Y_update = (209-X_aruco)*0.011/82
+        X_update = -(349-Y_aruco)*0.01/65
+        Y_update = (209-X_aruco)*0.011/82
+
+        if row == 2:
+            X_update = -(349-Y_aruco)*0.01/65
+            Y_update = (209-X_aruco)*0.011/82
+
+        if Cube_number==5 and row == 1:
+            X_update =X_update + 0.019
+
+        if row==2:
+            X_update =X_update + 0.023
+
+
     goal_position = [X_pose+X_update, Y_pose+Y_update, -0.248]  # Adjust as needed
     move_to_goal_position(goal_position, goal_orientation, 3)
     rospy.sleep(3)
@@ -528,7 +533,6 @@ def run():
     #Step 2 Openning Gripper
     update_gripper_position(0.035)
     rospy.sleep(0.7)
-
 
 
     if movement == "Forward":
@@ -556,6 +560,35 @@ def run():
         rospy.sleep(0.3)
         up_joint_angles = [0.07, 0.38, -1.53, 1.98, 0.21, -1.37, -1.1]
         move_arm_with_interp(up_joint_angles, 5)
+
+
+    elif movement == "Backward":
+        goal_position = [X_pose+X_update, Y_pose+Y_update, -0.24]  # Adjust as needed
+        move_to_goal_position(goal_position, goal_orientation, 1)
+        rospy.sleep(1)
+
+        goal_position = [X_pose+X_update-X_forward, Y_pose+Y_update, -0.24]  # Adjust as needed
+        move_to_goal_position(goal_position, goal_orientation, 2)
+        rospy.sleep(2)
+
+        goal_position = [X_pose+X_update-X_forward, Y_pose+Y_update, -0.248]  # Adjust as needed
+        move_to_goal_position(goal_position, goal_orientation, 1)
+        rospy.sleep(1)
+
+        #Step 2 Openning Gripper
+        update_gripper_position(0.09)
+        rospy.sleep(0.7)
+
+        goal_position = [X_pose+X_update-X_forward, Y_pose+Y_update, -0.2]  # Adjust as needed
+        move_to_goal_position(goal_position, goal_orientation, 1)
+        rospy.sleep(1)
+
+        rospy.wait_for_message("joint_states", JointState)
+        rospy.sleep(0.3)
+        up_joint_angles = [0.07, 0.38, -1.53, 1.98, 0.21, -1.37, -1.1]
+        move_arm_with_interp(up_joint_angles, 5)
+
+
 
     elif movement == "Drop":
 
@@ -651,11 +684,58 @@ def run():
         up_joint_angles = [0.07, 0.38, -1.53, 1.98, 0.21, -1.37, -1.1]
         move_arm_with_interp(up_joint_angles, 5)
 
+
+    elif movement == "Move":
+
+        goal_position = [X_pose+X_update, Y_pose+Y_update, -0.24]  # Adjust as needed
+        move_to_goal_position(goal_position, goal_orientation, 1)
+        rospy.sleep(1)
+
+        X_pose, Y_pose = PositionGiver(move_target)
+
+        if row == 2:
+            X_pose = X_pose + X_forward 
+
+        goal_position = [X_pose, Y_pose, -0.24]  # Adjust as needed
+        move_to_goal_position(goal_position, goal_orientation, 4)
+        rospy.sleep(4)
+
+        goal_position = [X_pose, Y_pose, -0.248]  # Adjust as needed
+        move_to_goal_position(goal_position, goal_orientation, 1)
+        rospy.sleep(1)
+
+        #Step 2 Openning Gripper
+        update_gripper_position(0.05)
+        rospy.sleep(0.7)
+
+        goal_position = [X_pose, Y_pose,-0.2]  # Adjust as needed
+        move_to_goal_position(goal_position, goal_orientation, 1)
+        rospy.sleep(1)
+
+
+        rospy.wait_for_message("joint_states", JointState)
+        rospy.sleep(0.3)
+        up_joint_angles = [0.07, 0.38, -1.53, 1.98, 0.21, -1.37, -1.1]
+        move_arm_with_interp(up_joint_angles, 5)
+
+
+    elif movement == "Stand":
+
+        #Step 2 Openning Gripper
+        update_gripper_position(0.09)
+        rospy.sleep(0.7)
+
+        goal_position = [X_pose+X_update, Y_pose+Y_update,-0.2]  # Adjust as needed
+        move_to_goal_position(goal_position, goal_orientation, 1)
+        rospy.sleep(1)
+
+
+        rospy.wait_for_message("joint_states", JointState)
+        rospy.sleep(0.3)
+        up_joint_angles = [0.07, 0.38, -1.53, 1.98, 0.21, -1.37, -1.1]
+        move_arm_with_interp(up_joint_angles, 5)
+
         
-
-
-
-
 
 
     # Get current end-effector position and orientation
@@ -678,8 +758,4 @@ if __name__ == "__main__":
     # Initialize ROS node
     rospy.init_node('tiago_arm_teleop_position')
     run()
-
-
-
-
 
