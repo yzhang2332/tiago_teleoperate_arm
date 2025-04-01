@@ -141,7 +141,7 @@ class ButtonSelectorApp:
             args.append(str(self.selected["move_row"]))
 
         print(f"Running hanabi_control.py with arguments: {args}")
-        self.process = subprocess.Popen(["python", "hanabi_control_2.py"] + args)
+        self.process = subprocess.Popen(["python", "hanabi_control.py"] + args)
 
     def stop_action(self):
         if self.process and self.process.poll() is None:
