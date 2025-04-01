@@ -408,22 +408,6 @@ def run():
 
     X_pose, Y_pose = PositionGiver(Cube_number)
 
-    # if Cube_number==1:
-    #     X_pose = 0.58
-    #     Y_pose = -0.016
-    # elif Cube_number == 2:
-    #     X_pose = 0.58
-    #     Y_pose = -0.12
-    # elif Cube_number == 3:
-    #     X_pose = 0.58
-    #     Y_pose = -0.25
-    # elif Cube_number == 4:
-    #     X_pose = 0.58
-    #     Y_pose = -0.35
-    # elif Cube_number == 5:
-    #     X_pose = 0.58
-    #     Y_pose = -0.46
-
     
     #parameters
     X_forward = 0.07
@@ -511,19 +495,34 @@ def run():
         X_aruco = Arco_markers_updated_array_1[2]
         Y_aruco = Arco_markers_updated_array_1[1]
 
-
-        X_update = -(349-Y_aruco)*0.01/65
-        Y_update = (209-X_aruco)*0.011/82
-
-        if row == 2:
+        # X_update = -(349-Y_aruco)*0.01/65
+        #     Y_update = (209-X_aruco)*0.011/82
+        
+        if Cube_number == 1 and row == 1:
             X_update = -(349-Y_aruco)*0.01/65
-            Y_update = (209-X_aruco)*0.011/82
+            Y_update = (209-X_aruco)*0.015/82
+        elif Cube_number == 2 and row == 1:
+            X_update = -(349-Y_aruco)*0.01/65
+            Y_update = (209-X_aruco)*0.015/82
+        elif Cube_number == 3 and row == 1:
+            X_update = -(349-Y_aruco)*0.01/65
+            Y_update = (209-X_aruco)*0.015/82
+        elif Cube_number == 4 and row == 1:
+            X_update = -(349-Y_aruco)*0.02/65
+            Y_update = (209-X_aruco)*0.017/82
+        elif Cube_number == 5 and row == 1:
+            X_update = -(349-Y_aruco)*0.01/65 + 0.023
+            Y_update = (209-X_aruco)*0.013/82
 
-        if Cube_number==5 and row == 1:
-            X_update =X_update + 0.019
+        # if row == 2:
+        #     X_update = -(349-Y_aruco)*0.01/65
+        #     Y_update = (209-X_aruco)*0.011/82
 
-        if row==2:
-            X_update =X_update + 0.023
+        # if Cube_number==5 and row == 1:
+        #     X_update =X_update + 0.019
+
+        # if row==2:
+        #     X_update =X_update + 0.023
 
 
     goal_position = [X_pose+X_update, Y_pose+Y_update, -0.248]  # Adjust as needed

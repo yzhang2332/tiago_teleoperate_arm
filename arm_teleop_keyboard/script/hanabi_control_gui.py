@@ -13,7 +13,8 @@ class ButtonSelectorApp:
             "action": None,
             "row": None,
             "state": None,
-            "move_target": None  # Only used if action is "Move"
+            "move_target": None,
+            "move_row": None  # Added for Move row selection
         }
 
         # Action labels including "Move" and "Stand"
@@ -39,14 +40,20 @@ class ButtonSelectorApp:
         # Row 4 - Move Target (only shown if "Move" is selected)
         self.move_target_label = tk.Label(root, text="Select Move Target:", font=("Arial", 12))
         self.move_target_buttons = self.create_button_row("Target", 5, 9, self.select_move_target)
+
+        # Row 5 - Move Row (only shown if "Move" is selected)
+        self.move_row_label = tk.Label(root, text="Select Move Row:", font=("Arial", 12))
+        self.move_row_buttons = self.create_button_row("MoveRow", 2, 11, self.select_move_row, ["Row 1", "Row 2"])
+
+        # Initially hide move-specific controls
         self.hide_move_target_buttons()
 
-        # Row 5 - Go and Stop Buttons (fixed on row 10 to avoid layout clash)
+        # Row 6 - Go and Stop Buttons
         go_button = tk.Button(root, text="Go!", bg="orange", width=20, height=2, command=self.run_action)
-        go_button.grid(row=10, column=0, columnspan=3, pady=10)
+        go_button.grid(row=13, column=0, columnspan=3, pady=10)
 
         stop_button = tk.Button(root, text="Stop", bg="red", fg="white", width=20, height=2, command=self.stop_action)
-        stop_button.grid(row=10, column=5, columnspan=3, pady=10)
+        stop_button.grid(row=13, column=5, columnspan=3, pady=10)
 
     def make_command(self, func, index):
         return lambda: func(index)
@@ -65,11 +72,17 @@ class ButtonSelectorApp:
         self.move_target_label.grid_forget()
         for btn in self.move_target_buttons:
             btn.grid_forget()
+        self.move_row_label.grid_forget()
+        for btn in self.move_row_buttons:
+            btn.grid_forget()
 
     def show_move_target_buttons(self):
         self.move_target_label.grid(row=8, column=0, columnspan=8, sticky="w", padx=5)
         for i, btn in enumerate(self.move_target_buttons):
             btn.grid(row=9, column=i, padx=5, pady=5)
+        self.move_row_label.grid(row=10, column=0, columnspan=8, sticky="w", padx=5)
+        for i, btn in enumerate(self.move_row_buttons):
+            btn.grid(row=11, column=i, padx=5, pady=5)
 
     def select_button(self, buttons, index, key):
         for btn in buttons:
@@ -83,11 +96,15 @@ class ButtonSelectorApp:
     def select_action(self, index):
         self.select_button(self.action_buttons, index, "action")
         action_label = self.action_labels[index]
-        if action_label == "Move":
+
+        # Show extra rows for Move, Stack, and Unstack
+        if action_label in ["Move", "Stack", "Unstack"]:
             self.show_move_target_buttons()
         else:
             self.hide_move_target_buttons()
             self.selected["move_target"] = None
+            self.selected["move_row"] = None
+
 
     def select_third(self, index):
         self.select_button(self.third_row_buttons, index, "row")
@@ -97,6 +114,9 @@ class ButtonSelectorApp:
 
     def select_move_target(self, index):
         self.select_button(self.move_target_buttons, index, "move_target")
+
+    def select_move_row(self, index):
+        self.select_button(self.move_row_buttons, index, "move_row")
 
     def run_action(self):
         if None in (self.selected["box"], self.selected["action"], self.selected["row"], self.selected["state"]):
@@ -113,14 +133,15 @@ class ButtonSelectorApp:
             state_label
         ]
 
-        if action_label == "Move":
-            if self.selected["move_target"] is None:
-                print("Please select a move target for the Move action.")
+        if action_label == "Move" or action_label == "Stack" or action_label == "Unstack":
+            if self.selected["move_target"] is None or self.selected["move_row"] is None:
+                print("Please select a move target and move row for the Move action.")
                 return
             args.append(str(self.selected["move_target"]))
+            args.append(str(self.selected["move_row"]))
 
         print(f"Running hanabi_control.py with arguments: {args}")
-        self.process = subprocess.Popen(["python", "hanabi_control.py"] + args)
+        self.process = subprocess.Popen(["python", "hanabi_control_2.py"] + args)
 
     def stop_action(self):
         if self.process and self.process.poll() is None:
@@ -129,6 +150,8 @@ class ButtonSelectorApp:
             self.process = None
         else:
             print("No process is currently running.")
+
+        self.process = subprocess.Popen(["python", "hanabi_reset_position.py"])
 
 # Run the GUI
 if __name__ == "__main__":
