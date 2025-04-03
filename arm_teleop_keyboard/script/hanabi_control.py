@@ -356,7 +356,7 @@ def PositionUpdater(X_aruco, Y_aruco, Cube_number, row, movement, State = "Norma
             X_update = -(349-Y_aruco)*0.01/65
             Y_update = (209-X_aruco)*0.015/82
         elif Cube_number == 3 and row == 1:
-            X_update = -(320-Y_aruco)*0.01/65+0.003
+            X_update = -(320-Y_aruco)*0.01/65
             Y_update = (209-X_aruco)*0.015/82
         elif Cube_number == 4 and row == 1:
             X_update = -(250-Y_aruco)*0.01/65
@@ -655,7 +655,7 @@ def run():
         update_gripper_position(0.04)
         rospy.sleep(0.7)
 
-        goal_position = [X_pose+X_update, Y_pose+Y_update, -0.248]  # Adjust as needed
+        goal_position = [X_pose, Y_pose, -0.248]  # Adjust as needed
         move_to_goal_position(goal_position, goal_orientation, 3)
         rospy.sleep(3)
 

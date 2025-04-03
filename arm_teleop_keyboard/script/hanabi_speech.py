@@ -200,16 +200,18 @@ def gui_main():
 
     root = tk.Tk()
     root.title("Voice Response GUI")
-    root.geometry("500x420")
+    root.geometry("500x580")
 
     position_frame = tk.Frame(root)
     verb_frame = tk.Frame(root)
     color_frame = tk.Frame(root)
     number_frame = tk.Frame(root)
+    action_frame = tk.Frame(root)
     position_frame.pack(pady=10)
     verb_frame.pack(pady=10)
     color_frame.pack(pady=10)
     number_frame.pack(pady=10)
+    action_frame.pack(pady=10)
 
     toggle_button = tk.Button(root, text=f"Voice v{voice_version}", font=("Helvetica", 14), command=toggle_voice)
     toggle_button.pack(pady=10)
@@ -264,6 +266,36 @@ def gui_main():
         btn = tk.Button(number_frame, text=str(i), font=("Helvetica", 14), width=5, height=2,
                         command=lambda i=i: button_clicked(f"number_{i}.mp3"))
         btn.pack(side=tk.LEFT, padx=5)
+
+    # Communicate section
+    action_label = tk.Label(action_frame, text="Communicate", font=("Helvetica", 14, "bold"))
+    # action_label.pack()
+    action_label.grid(row=0, column=0, columnspan=2, pady=(0, 5))
+    # actions = {
+    #     "I'll go first": "goFirst.mp3", 
+    #     "I'm gonna give a clue": "giveClue.mp3",
+    #     "I'm gonna discard a tile": "discardTile.mp3",
+    #     "I'm gonna play a tile": "playTile.mp3"
+    # }
+
+    actions = [
+        ("I'll go first", "goFirst.mp3"), 
+        ("I'm gonna give a clue", "giveClue.mp3"),
+        ("I'm gonna discard a tile", "discardTile.mp3"),
+        ("I'm gonna play a tile", "playTile.mp3")
+    ]
+
+    # for label, audio_file in actions.items():
+    #     btn = tk.Button(action_frame, text=label, font=("Helvetica", 14), width=30, height=2,
+    #                     command=lambda audio=audio_file: button_clicked(audio))
+    #     btn.pack(side=tk.LEFT, padx=10)
+
+    for idx, (label, audio_file) in enumerate(actions):
+        row = 1 + idx // 2
+        col = idx % 2
+        btn = tk.Button(action_frame, text=label, font=("Helvetica", 12), width=25, height=2,
+                        command=lambda audio_file=audio_file: button_clicked(audio_file))
+        btn.grid(row=row, column=col, padx=5, pady=5)
 
     def check_shutdown():
         """Check if the shutdown flag has been set and close the application if so."""
