@@ -1,8 +1,13 @@
 import tkinter as tk
 import subprocess
+import rospy
+from std_msgs.msg import String
+
 
 class ButtonSelectorApp:
     def __init__(self, root):
+        self.publisher = rospy.Publisher('/robot_action', String, queue_size=10)
+
         self.root = root
         self.root.title("Button Selector GUI")
         self.process = None  # To store the subprocess
@@ -140,6 +145,13 @@ class ButtonSelectorApp:
             args.append(str(self.selected["move_target"]))
             args.append(str(self.selected["move_row"]))
 
+        # Publish to ROS topic
+        action_summary = f"Box: {self.selected['box']}, Row: {self.selected['row']}, State: {state_label}, Action: {action_label}"
+        if action_label in ["Move", "Stack", "Unstack"]:
+            action_summary += f", Move_Target: {self.selected['move_target']}, Move_Row: {self.selected['move_row']}"
+        self.publisher.publish(action_summary)
+        print(action_summary)
+
         print(f"Running hanabi_control.py with arguments: {args}")
         self.process = subprocess.Popen(["python", "hanabi_control.py"] + args)
 
@@ -151,10 +163,16 @@ class ButtonSelectorApp:
         else:
             print("No process is currently running.")
 
+        # Publish reset
+        self.publisher.publish("Action: Reset")
+        print("Action: Reset")
+
         self.process = subprocess.Popen(["python", "hanabi_reset_position.py"])
 
 # Run the GUI
 if __name__ == "__main__":
+    # Initialize ROS node
+    rospy.init_node('tiago_arm_teleop_position')
     root = tk.Tk()
     app = ButtonSelectorApp(root)
     root.mainloop()

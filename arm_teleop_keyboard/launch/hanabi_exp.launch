@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+
+  <node pkg="arm_teleop_keyboard" type="hanabi_speech.py" name="gui_ros_audio_publisher" output="screen">
+    </node>
+
+  <node pkg="arm_teleop_keyboard" type="hanabi_control_gui.py" name="tiago_arm_teleop_position" output="screen">
+    </node>
+  
+  <node pkg="arm_teleop_keyboard" type="hanabi_control_gripper_cam.py" name="camera_subscriber" output="screen">
+    </node>
+
+</launch>

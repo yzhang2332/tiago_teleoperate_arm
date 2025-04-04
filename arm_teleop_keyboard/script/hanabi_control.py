@@ -1057,7 +1057,7 @@ def run():
 
 if __name__ == "__main__":
     global data
-    # Initialize ROS node
-    rospy.init_node('tiago_arm_teleop_position')
+    # # Initialize ROS node
+    # rospy.init_node('tiago_arm_teleop_position')
     run()
 

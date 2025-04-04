@@ -5,6 +5,7 @@ import cv2
 import cv2.aruco as aruco
 from sensor_msgs.msg import JointState
 import numpy as np
+import paramiko
 
 
 def image_callback(msg, aruco_pub):
@@ -53,6 +54,30 @@ def image_callback(msg, aruco_pub):
         cv2.waitKey(1)
     except Exception as e:
         rospy.logerr("Failed to convert image: %s", str(e))
+
+def start_remote_script():
+    hostname = "tiago-196c"
+    port = 22
+    username = "pal"
+    password = "pal"  # Replace with actual password
+
+    try:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(hostname, port=port, username=username, password=password)
+
+        command = "source /opt/ros/noetic/setup.bash && cd scripts && python3 Camera.py"
+        stdin, stdout, stderr = ssh.exec_command(command)
+
+        print("STDOUT:")
+        print(stdout.read().decode())
+
+        print("STDERR:")
+        print(stderr.read().decode())
+
+        ssh.close()
+    except Exception as e:
+        print(f"SSH connection failed: {e}")
 
 def main():
     rospy.init_node('camera_subscriber', anonymous=True)
