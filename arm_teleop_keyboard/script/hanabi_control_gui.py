@@ -7,7 +7,6 @@ from std_msgs.msg import String
 class ButtonSelectorApp:
     def __init__(self, root):
         self.publisher = rospy.Publisher('/robot_action', String, queue_size=10)
-
         self.root = root
         self.root.title("Button Selector GUI")
         self.process = None  # To store the subprocess
@@ -144,7 +143,7 @@ class ButtonSelectorApp:
                 return
             args.append(str(self.selected["move_target"]))
             args.append(str(self.selected["move_row"]))
-
+        
         # Publish to ROS topic
         action_summary = f"Box: {self.selected['box']}, Row: {self.selected['row']}, State: {state_label}, Action: {action_label}"
         if action_label in ["Move", "Stack", "Unstack"]:
@@ -162,8 +161,8 @@ class ButtonSelectorApp:
             self.process = None
         else:
             print("No process is currently running.")
-
-        # Publish reset
+        
+         # Publish reset
         self.publisher.publish("Action: Reset")
         print("Action: Reset")
 
@@ -171,7 +170,6 @@ class ButtonSelectorApp:
 
 # Run the GUI
 if __name__ == "__main__":
-    # Initialize ROS node
     rospy.init_node('tiago_arm_teleop_position')
     root = tk.Tk()
     app = ButtonSelectorApp(root)

@@ -326,10 +326,10 @@ def PositionUpdater(X_aruco, Y_aruco, Cube_number, row, movement, State = "Norma
             X_update = -(320-Y_aruco)*0.01/65
             Y_update = (209-X_aruco)*0.015/82
         elif Cube_number == 4 and row == 1:
-            X_update = -(250-Y_aruco)*0.01/65+0.002
+            X_update = -(290-Y_aruco)*0.01/65+0.002
             Y_update = (209-X_aruco)*0.015/82
         elif Cube_number == 5 and row == 1:
-            X_update = -(230-Y_aruco)*0.01/65+0.002
+            X_update = -(270-Y_aruco)*0.01/65+0.002
             Y_update = (209-X_aruco)*0.015/82
 
         elif Cube_number == 1 and row == 2:
@@ -356,7 +356,7 @@ def PositionUpdater(X_aruco, Y_aruco, Cube_number, row, movement, State = "Norma
             X_update = -(349-Y_aruco)*0.01/65
             Y_update = (209-X_aruco)*0.015/82
         elif Cube_number == 3 and row == 1:
-            X_update = -(320-Y_aruco)*0.01/65
+            X_update = -(320-Y_aruco)*0.01/65+0.003
             Y_update = (209-X_aruco)*0.015/82
         elif Cube_number == 4 and row == 1:
             X_update = -(250-Y_aruco)*0.01/65
@@ -631,7 +631,7 @@ def run():
         X_update, Y_update = PositionUpdater(X_aruco, Y_aruco, Cube_number, row, movement, "Droped")
 
 
-        goal_position = [X_pose+X_update, Y_pose+Y_update+0.023, -0.26]  # Adjust as needed
+        goal_position = [X_pose, Y_pose+0.023, -0.26]  # Adjust as needed
         move_to_goal_position(goal_position, goal_orientation, 3)
         rospy.sleep(3)
 
@@ -741,7 +741,10 @@ def run():
             move_to_goal_position(goal_position, goal_orientation, 1)
             rospy.sleep(1)
 
-        goal_position = [X_pose+X_update, Y_pose+Y_update, -0.27]  # Adjust as needed
+        if movement == "Drop":
+            goal_position = [X_pose+X_update, Y_pose+Y_update, -0.245]  # Adjust as needed
+        else:
+            goal_position = [X_pose+X_update, Y_pose+Y_update, -0.27]  # Adjust as needed
         move_to_goal_position(goal_position, goal_orientation, 3)
         rospy.sleep(3)
 
@@ -848,7 +851,6 @@ def run():
         move_arm_with_interp(up_joint_angles, 5)
 
 
-
     elif movement == "Drop":
 
         goal_position = [X_pose+X_update, Y_pose+Y_update, -0.24]  # Adjust as needed
@@ -876,16 +878,16 @@ def run():
         rospy.sleep(1)
 
         #Step 2 Openning Gripper
-        update_gripper_position(0.05)
+        update_gripper_position(0.09)
         rospy.sleep(0.7)
 
-        goal_position = [X_pose-0.002, Y_pose+y_left+0.06, -0.13]  # Adjust as needed
+        goal_position = [X_pose-0.01, Y_pose+y_left+0.06, -0.13]  # Adjust as needed
         move_to_goal_position(goal_position, goal_orientation, 2)
         rospy.sleep(2)
 
-        #Step 2 Openning Gripper
-        update_gripper_position(0.09)
-        rospy.sleep(0.7)
+        # #Step 2 Openning Gripper
+        # update_gripper_position(0.09)
+        # rospy.sleep(0.7)
 
 
         rospy.wait_for_message("joint_states", JointState)
@@ -1057,7 +1059,7 @@ def run():
 
 if __name__ == "__main__":
     global data
-    # # Initialize ROS node
-    # rospy.init_node('tiago_arm_teleop_position')
+    # Initialize ROS node
+    rospy.init_node('tiago_arm_teleop_position')
     run()
 
