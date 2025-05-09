@@ -283,6 +283,7 @@ def gui_main():
         ("I'm gonna give a clue", "giveClue.mp3"),
         ("I'm gonna discard a tile", "discardTile.mp3"),
         ("I'm gonna play a tile", "playTile.mp3")
+        ("Can you move a clue token", "clueToken.mp3")
     ]
 
     # for label, audio_file in actions.items():
