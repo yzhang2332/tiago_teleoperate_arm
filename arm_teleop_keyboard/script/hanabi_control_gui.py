@@ -22,7 +22,7 @@ class ButtonSelectorApp:
         }
 
         # Action labels including "Move" and "Stand"
-        self.action_labels = ["Forward", "Drop", "Play", "Discard", "Stack", "Backward", "Unstack", "Move", "Stand"]
+        self.action_labels = ["Forward", "Drop", "Play", "Discard", "Stack", "Backward", "Unstack", "Move", "Stand", "Life"]
         self.State_labels = ["Normal", "Stacked", "Droped"]
 
         # Row 0 - Box Number Buttons

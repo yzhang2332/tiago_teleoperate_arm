@@ -2,6 +2,7 @@ import tkinter as tk
 import random
 import signal
 import sys
+import os
 #Installed to play audio without ROS
 # import pygame  
 
@@ -37,32 +38,23 @@ def signal_handler(sig, frame):
     if ROS_ENABLED:
         rospy.signal_shutdown("Manual shutdown")
     
-    # sys.exit(0)
-
-# def button_clicked(audio_file, publisher=None):
-#     """Simulated ROS publishing or local print."""
-#     if ROS_ENABLED:
-#         rospy.loginfo(f"Publishing message to /play_audio: {audio_file}")
-#         publisher.publish(audio_file)
-#     else:
-#         print(f"[TEST MODE] Would publish: {audio_file}")
 
 def button_clicked(audio_file):
     """Publish the audio file name to ROS."""
     # versioned_file = audio_file.replace(".mp3", f"_v{voice_version}.mp3")
     versioned_file = f"../hanabi_audios/{audio_file.replace('.mp3', f'_v{voice_version}.wav')}"
+
+    # script_dir = os.path.dirname(os.path.abspath(__file__))  # Absolute dir of the script
+    # audio_filename = audio_file.replace('.mp3', f'_v{voice_version}.wav')
+    # versioned_file = os.path.join(script_dir, 'hanabi_audios', audio_filename)
+
+    # versioned_file = f"home/pal/tiago_teleoperate_arm/arm_teleop_keyboard/script/hanabi_audios/{audio_file.replace('.mp3', f'_v{voice_version}.wav')}"
     if ROS_ENABLED and publisher:
         rospy.loginfo(f"Publishing message to /play_audio: {versioned_file}")
         publisher.publish(versioned_file)
     else:
         print(f"[TEST MODE] Would publish: {versioned_file}")
-
-# def play_audio(audio_file):
-#     global voice_version
-#     versioned_file = audio_file.replace(".mp3", f"_v{voice_version}.mp3")
-#     pygame.mixer.music.stop()
-#     pygame.mixer.music.load(versioned_file)
-#     pygame.mixer.music.play()        
+     
 
 def create_buttons(master, audio_files, publisher=None):
     """Create buttons for each available audio file."""
@@ -88,105 +80,6 @@ def toggle_voice():
     voice_version = 2 if voice_version == 1 else 1
     if toggle_button:
             toggle_button.config(text=f"Voice V{voice_version}")
-
-# def gui_main():
-#     global root, message_entry
-
-#     if ROS_ENABLED:
-#         # Initialize ROS node
-#         rospy.init_node("gui", anonymous=True)
-
-#         # Create ROS publisher for /play_audio
-#         audio_publisher = rospy.Publisher('/play_audio', String, queue_size=10)
-
-#         # Set up TTS action client
-#         tts_client = actionlib.SimpleActionClient('/tts', TtsAction)
-#         tts_client.wait_for_server()
-#         rospy.loginfo("TTS server connected.")
-#     else:
-#         audio_publisher = None
-#         tts_client = None
-
-#     # Initialize GUI
-#     root = tk.Tk()
-#     root.title("Voice Response GUI")
-#     root.geometry("400x650") # Setting window size
-
-#     # Create Sections
-#     position_frame = tk.Frame(root)
-#     position_frame.pack(pady=10)
-
-#     verb_frame = tk.Frame(root)
-#     verb_frame.pack(pady=10)
-
-#     color_frame = tk.Frame(root)
-#     color_frame.pack(pady=10)
-
-#     number_frame = tk.Frame(root)
-#     number_frame.pack(pady=10)
-
-#     # Voice Toggle Button
-#     toggle_button = tk.Button(root, text=f"Voice v{voice_version}", font=("Helvetica", 14), command=toggle_voice)
-#     toggle_button.pack(pady=10)
-
-#     # Position Section
-#     position_label = tk.Label(position_frame, text="Position", font=("Helvetica", 14, "bold"))
-#     position_label.pack()
-
-#     position_buttons = []
-#     for i in range(1, 6):
-#         btn = tk.Button(position_frame, text=str(i), font=("Helvetica", 14), width=5, height=2,
-#                         command=lambda i=i: play_audio(f"tile{i}.mp3"))
-#         btn.pack(side=tk.LEFT, padx=5)
-#         position_buttons.append(btn)
-
-#     # Upper & Lower Buttons under each position button
-#     #for i in range(5):
-#         frame = tk.Frame(position_frame)
-#         frame.pack(side=tk.LEFT, padx=5)
-#         upper_btn = tk.Button(frame, text="U", font=("Helvetica", 10), width=2, height=1,
-#                             command=lambda: play_audio("upper.mp3"))
-#         lower_btn = tk.Button(frame, text="L", font=("Helvetica", 10), width=2, height=1,
-#                             command=lambda: play_audio("lower.mp3"))
-#         upper_btn.pack()
-#         lower_btn.pack()
-
-#     # Verb Section
-#     verb_buttons = [
-#         ("is", "is.mp3"),
-#         ("are", "are.mp3")
-#     ]
-#     for text, audio in verb_buttons:
-#         btn = tk.Button(verb_frame, text=text, font=("Helvetica", 14), width=5, height=2,
-#                         command=lambda audio=audio: play_audio(audio))
-#         btn.pack(side=tk.LEFT, padx=10)
-
-#     # Color Section
-#     color_label = tk.Label(color_frame, text="Color", font=("Helvetica", 14, "bold"))
-#     color_label.pack()
-
-#     colors = {
-#         "Blue": "blue",
-#         "Black": "black",
-#         "Red": "red",
-#         "Green": "green"
-#     }
-
-#     for color_text, color_hex in colors.items():
-#         btn = tk.Button(color_frame, text=color_text, font=("Helvetica", 14), fg=color_hex, width=10, height=2,
-#                         command=lambda color=color_text: play_audio(f"{color.lower()}.mp3"))
-#         btn.pack(side=tk.LEFT, padx=5)
-
-#     # Number Section
-#     number_label = tk.Label(number_frame, text="Number", font=("Helvetica", 14, "bold"))
-#     number_label.pack()
-
-#     for i in range(1, 6):
-#         btn = tk.Button(number_frame, text=str(i), font=("Helvetica", 14), width=5, height=2,
-#                         command=lambda i=i: play_audio(f"number_{i}.mp3"))
-#         btn.pack(side=tk.LEFT, padx=5)
-    
-#     root.mainloop()
 
 def gui_main():
     global publisher, tts_client, toggle_button, root
@@ -234,15 +127,7 @@ def gui_main():
                               command=lambda: button_clicked("lower.mp3"))
         upper_btn.pack()
         lower_btn.pack()
-    # for i in range(5):
-    #     frame = tk.Frame(position_frame)
-    #     frame.pack(side=tk.LEFT, padx=5)
-    #     upper_btn = tk.Button(frame, text="U", font=("Helvetica", 10), width=2, height=1,
-    #                           command=lambda: button_clicked("upper.mp3"))
-    #     lower_btn = tk.Button(frame, text="L", font=("Helvetica", 10), width=2, height=1,
-    #                           command=lambda: button_clicked("lower.mp3"))
-    #     upper_btn.pack()
-    #     lower_btn.pack()
+
 
     # Verb section
     for text, audio in [("is", "is.mp3"), ("are", "are.mp3")]:
@@ -271,12 +156,7 @@ def gui_main():
     action_label = tk.Label(action_frame, text="Communicate", font=("Helvetica", 14, "bold"))
     # action_label.pack()
     action_label.grid(row=0, column=0, columnspan=2, pady=(0, 5))
-    # actions = {
-    #     "I'll go first": "goFirst.mp3", 
-    #     "I'm gonna give a clue": "giveClue.mp3",
-    #     "I'm gonna discard a tile": "discardTile.mp3",
-    #     "I'm gonna play a tile": "playTile.mp3"
-    # }
+
 
     actions = [
         ("I'll go first", "goFirst.mp3"), 
@@ -286,10 +166,6 @@ def gui_main():
         ("Can you move a clue token", "clueToken.mp3")
     ]
 
-    # for label, audio_file in actions.items():
-    #     btn = tk.Button(action_frame, text=label, font=("Helvetica", 14), width=30, height=2,
-    #                     command=lambda audio=audio_file: button_clicked(audio))
-    #     btn.pack(side=tk.LEFT, padx=10)
 
     for idx, (label, audio_file) in enumerate(actions):
         row = 1 + idx // 2
