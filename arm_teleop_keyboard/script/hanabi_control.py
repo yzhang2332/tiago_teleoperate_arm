@@ -1025,7 +1025,8 @@ def run():
             rospy.sleep(0.3)
             up_joint_angles = [0.93, 0.58, -1.58, 1.67, 0.51, -1.38, 0.87]
             move_arm_with_interp(up_joint_angles, 4)
-            rospy.sleep(4)
+            update_head_cube(Cube_number)
+            rospy.sleep(2)
 
             X_pose, Y_pose = PositionGiver(Cube_number, 1, X_forward, "Normal")
             goal_orientation = [0, 0, pi/2]  # Adjust as needed
@@ -1116,7 +1117,8 @@ def run():
             rospy.sleep(0.3)
             up_joint_angles = [0.93, 0.58, -1.58, 1.67, 0.51, -1.38, 0.87]
             move_arm_with_interp(up_joint_angles, 4)
-            rospy.sleep(4)
+            update_head_cube(Cube_number)
+            rospy.sleep(2)
 
             X_pose, Y_pose = PositionGiver(Cube_number, 1, X_forward, "Normal")
             goal_orientation = [0, 0, pi/2]  # Adjust as needed
