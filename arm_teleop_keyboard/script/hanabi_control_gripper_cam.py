@@ -66,7 +66,7 @@ def start_remote_script():
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(hostname, port=port, username=username, password=password)
 
-        command = "source /opt/ros/noetic/setup.bash && cd scripts && python3 Camera.py"
+        command = "source /opt/ros/noetic/setup.bash && cd scripts && python3 camera.py"
         stdin, stdout, stderr = ssh.exec_command(command)
 
         print("STDOUT:")
