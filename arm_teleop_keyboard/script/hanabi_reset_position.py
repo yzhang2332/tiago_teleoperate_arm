@@ -351,7 +351,8 @@ def run():
     goal_position = [current_position.x(), current_position.y(), -0.13]  # Adjust as needed
     goal_orientation = [0, 0, yaw]  # Adjust as needed
     move_to_goal_position(goal_position, goal_orientation, 2)
-    rospy.sleep(2)
+    update_head_position(0, -15, 2)
+    # rospy.sleep(2)
 
 
     rospy.wait_for_message("joint_states", JointState)
