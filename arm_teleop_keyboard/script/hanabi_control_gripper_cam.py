@@ -66,24 +66,20 @@ def start_remote_script():
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(hostname, port=port, username=username, password=password)
 
-        command = "source /opt/ros/noetic/setup.bash && cd scripts && python3 camera.py"
+        command = "source /opt/ros/noetic/setup.bash && cd scripts && python3 Camera.py"
         stdin, stdout, stderr = ssh.exec_command(command)
 
-        # print("STDOUT:")
-        # print(stdout.read().decode())
+        print("STDOUT:")
+        print(stdout.read().decode())
 
-        # print("STDERR:")
-        # print(stderr.read().decode())
+        print("STDERR:")
+        print(stderr.read().decode())
 
         ssh.close()
     except Exception as e:
         print(f"SSH connection failed: {e}")
 
-
-
-
 def main():
-    start_remote_script() 
     rospy.init_node('camera_subscriber', anonymous=True)
     aruco_pub = rospy.Publisher("/aruco_pose_robot_camera", JointState, queue_size=1)
 
